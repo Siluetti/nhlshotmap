@@ -5,6 +5,7 @@ import './App.css';
 // the canvas logic has been taken from here: https://medium.com/better-programming/add-an-html-canvas-into-your-react-app-176dab099a79
 
 function App() {
+  
   const canvasRef = React.useRef(null);
 
   const [context, setContext] = React.useState(null);

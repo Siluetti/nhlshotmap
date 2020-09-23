@@ -2,9 +2,14 @@ This was created using following: https://aws.amazon.com/blogs/mobile/amplify-fr
 
 Checkout these https://docs.amplify.aws/ui/q/framework/react
 
+
 TODO:
 statsapi integration:
 https://statsapi.web.nhl.com/api/v1/game/2019030411/feed/live?site=en_nhl <-- search for keyword "shot"
+
+Note that the coordinates 0,0 is the center of the rink. The coordinates go from -100 to +100 for x and from -41 to +41 for y.
+
+
 https://statsapi.web.nhl.com/api/v1/game/2019030411/content?site=en_nhl
 https://statsapi.web.nhl.com/api/v1/teams?site=en_nhl&teamId=25,14&expand=team.roster,team.stats,roster.person,person.stats&stats=statsSingleSeason
 https://statsapi.web.nhl.com/api/v1/tournaments/playoffs?site=en_nhl&expand=round.series,schedule.game.seriesSummary&season=20192020
