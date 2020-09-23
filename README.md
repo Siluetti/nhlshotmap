@@ -1,5 +1,15 @@
 This was created using following: https://aws.amazon.com/blogs/mobile/amplify-framework-announces-new-rearchitected-ui-component-and-modular-javascript-libraries/
 
+Checkout these https://docs.amplify.aws/ui/q/framework/react
+
+TODO:
+statsapi integration:
+https://statsapi.web.nhl.com/api/v1/game/2019030411/feed/live?site=en_nhl <-- search for keyword "shot"
+https://statsapi.web.nhl.com/api/v1/game/2019030411/content?site=en_nhl
+https://statsapi.web.nhl.com/api/v1/teams?site=en_nhl&teamId=25,14&expand=team.roster,team.stats,roster.person,person.stats&stats=statsSingleSeason
+https://statsapi.web.nhl.com/api/v1/tournaments/playoffs?site=en_nhl&expand=round.series,schedule.game.seriesSummary&season=20192020
+https://statsapi.web.nhl.com/api/v1/schedule?startDate=2020-09-19&endDate=2020-09-19&hydrate=team,linescore,broadcasts(all),tickets,game(content(media(epg)),seriesSummary),radioBroadcasts,metadata,seriesSummary(series)&site=en_nhlNORDIC&teamId=&gameType=&timecode=
+
 
 $ npm install -g @aws-amplify/cli
 $ amplify configure
