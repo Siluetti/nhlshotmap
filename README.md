@@ -1,3 +1,46 @@
+This was created using following: https://aws.amazon.com/blogs/mobile/amplify-framework-announces-new-rearchitected-ui-component-and-modular-javascript-libraries/
+
+
+$ npm install -g @aws-amplify/cli
+$ amplify configure
+
+amplify configure asks you to sign into the AWS Console.
+
+Once you’re signed in, the Amplify CLI asks you to create an IAM user.
+
+Specify the AWS Region ? 
+*region*: # Your preferred region 
+Specify the username of the new IAM user: ? 
+*user name*: # User name for Amplify IAM user 
+Complete the user creation using the AWS console
+
+
+$ npx create-react-app shotmap
+$ cd shotmap
+
+$ amplify init 
+
+? Enter a name for the project: amplifyapp 
+? Enter a name for the environment: dev 
+? Choose your default editor: Visual Studio Code 
+? Choose the type of app that you are building: javascript 
+? What javascript framework are you using: react 
+? Source Directory Path: src 
+? Distribution Directory Path: build 
+? Build Command: npm run-script build 
+? Start Command: npm run-script start 
+? Do you want to use an AWS profile? Yes 
+? Please choose the profile you want to use: default
+
+
+"amplify status" will show you what you've added already and if it's locally configured or deployed
+"amplify add <category>" will allow you to add features like user login or a backend API
+"amplify push" will build all your local backend resources and provision it in the cloud
+"amplify console" to open the Amplify Console and view your project status
+"amplify publish" will build all your local backend and frontend resources (if you have hosting category added) and provision it in the cloud
+
+
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
