@@ -27,6 +27,8 @@ export default class App extends React.Component {
       jsonData: null,
       nhlGameUrl: null,
       game: null,
+      awayTeam: null,
+      homeTeam: null,
     }
     this.handleChange = this.handleChange.bind(this);
   }
@@ -70,23 +72,23 @@ export default class App extends React.Component {
       console.log("jsondata livedata filled");
     } else {
       console.log("checking nhl game url");
-      if(this.state.nhlGameUrl){
+      if(this.state.game){
         console.log("nhl game url found");
-        var parsedUrl = new URL(this.state.nhlGameUrl);
-        var result = parsedUrl.hash.replace("#", "").split(',').reduce(function (result, item) {
-            var parts = item.split('=');
-            result[parts[0]] = parts[1];
-            return result;
-        }, {});
-        var game = result["game"];
   
-        fetch("https://statsapi.web.nhl.com/api/v1/game/"+game+"/feed/live?site=en_nhl")
+        fetch("https://statsapi.web.nhl.com/api/v1/game/"+this.state.game+"/feed/live?site=en_nhl")
           .then(response => response.json())
           .then(jsonData => {
             if(this.isMounted){
               this.setState({ jsonData: jsonData });
-              console.log("jsondata filled with game "+game);
-              var allPlays = this.state.jsonData.liveData.plays.allPlays;
+              console.log("jsondata filled with game "+this.state.game);
+              var allPlays = jsonData.liveData.plays.allPlays;
+              this.setState(
+                {
+                  jsonData: jsonData,
+                  awayTeam: jsonData.gameData.teams.away.name,
+                  homeTeam: jsonData.gameData.teams.home.name,
+                }
+              );
               if(this.state.context) {
                 this.drawCircle(xOmegaPoint, yOmegaPoint, '#FF0000', 10);
                 
@@ -185,11 +187,12 @@ export default class App extends React.Component {
       <form onSubmit={this.handleSubmit} style={{width: "100%"}}>
         <label style={{width: "100%"}}>
           <p>NHL game URL:</p>
-          <input type="text" value={this.state.value} onChange={this.handleChange} style={{width: "60%"}} />
+          <input type="text" value={this.state.nhlGameUrl} onChange={this.handleChange} style={{width: "60%"}} />
         </label>
         <p>Game:  {this.state.game} </p>        
       </form>
 
+      <p>{this.state.awayTeam} @ {this.state.homeTeam}</p>
         <canvas
           id="canvas"
           ref={this.canvasRef}
@@ -207,7 +210,6 @@ export default class App extends React.Component {
     );
   }
 }
-//        <p>JSON:  {this.state.jsonDataState} </p>
 
     // According to Wikipedia https://en.wikipedia.org/wiki/Ice_hockey_rink#:~:text=Most%20North%20American%20rinks%20follow,m)%20from%20the%20end%20boards.
     // ice hockey rink is by default 200 feet times 85 feet
