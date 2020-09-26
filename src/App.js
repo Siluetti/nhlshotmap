@@ -4,7 +4,6 @@ import logo from './logo.svg';
 import './App.css';
 
 // the canvas logic has been taken from here: https://medium.com/better-programming/add-an-html-canvas-into-your-react-app-176dab099a79
-
 export default class App extends React.Component {
   // _isMounted is here only for solving an issue with data fetching:
   // https://stackoverflow.com/questions/53949393/cant-perform-a-react-state-update-on-an-unmounted-component
@@ -23,21 +22,18 @@ export default class App extends React.Component {
   constructor(props) {
     super(props);
     this.canvasRef = React.createRef(null);
-    //this.isMounted = false;
     this.state = {
       context: null,
       jsonData: null,
+      nhlGameUrl: null,
+      game: null,
     }
-  }
-  
-  myFunction(item, index) {
-    console.log(item.coordinates);
+    this.handleChange = this.handleChange.bind(this);
   }
 
   drawCircle(x, y, color, radius = 5){
     this.state.context.beginPath();
     this.state.context.fillStyle = color;
-
 
     var startAngle = 0; // Starting point on circle
     var endAngle = 2 * Math.PI; // End point on circle
@@ -51,9 +47,9 @@ export default class App extends React.Component {
 
   componentDidMount(){
     this.isMounted = true;
-    
-    
-    
+  }
+
+  componentDidUpdate(){
     // goal lines are 11 feet from the end boards which means 5.5 % and 94.5 %
     var leftGoalLine = rinkWidth * 0.055;
     var rightGoalLine = rinkWidth * 0.945;
@@ -61,15 +57,7 @@ export default class App extends React.Component {
     // Blue lines are 75 feet from the end boards which makes 32.5 % and 67.5 %
     var leftBlueLine = rinkWidth * 0.325;
     var rightBlueLine = rinkWidth * 0.675;
-
-    var rinkInfo = {
-      leftGoalLine: leftGoalLine,
-      rightGoalLine: rightGoalLine,
-      lineWidth: lineWidth,
-      leftBlueLine: leftBlueLine,
-      rightBlueLine: rightBlueLine,
-    };
-
+    
     if (this.canvasRef.current) {
       const renderCtx = this.canvasRef.current.getContext('2d');
 
@@ -77,67 +65,62 @@ export default class App extends React.Component {
         this.state.context = renderCtx;
       }
     }
-
     
     if(this.state.jsonData && this.state.jsonData.liveData) {
       console.log("jsondata livedata filled");
-      //this.state.jsonData.liveData.plays.allPlays.forEach(myFunction);
     } else {
-      //const setState = this.setState.bind(this)
-      //getLiveFeed(setState);
+      console.log("checking nhl game url");
+      if(this.state.nhlGameUrl){
+        console.log("nhl game url found");
+        var parsedUrl = new URL(this.state.nhlGameUrl);
+        var result = parsedUrl.hash.replace("#", "").split(',').reduce(function (result, item) {
+            var parts = item.split('=');
+            result[parts[0]] = parts[1];
+            return result;
+        }, {});
+        var game = result["game"];
+  
+        fetch("https://statsapi.web.nhl.com/api/v1/game/"+game+"/feed/live?site=en_nhl")
+          .then(response => response.json())
+          .then(jsonData => {
+            if(this.isMounted){
+              this.setState({ jsonData: jsonData });
+              console.log("jsondata filled with game "+game);
+              var allPlays = this.state.jsonData.liveData.plays.allPlays;
+              if(this.state.context) {
+                this.drawCircle(xOmegaPoint, yOmegaPoint, '#FF0000', 10);
+                
+                var i;
+                for (i = 0; i < allPlays.length; i++) {
+                  var play = allPlays[i];
+                  if(play.result.eventTypeId === "SHOT"){
+                    //console.log(play.coordinates);
 
-      // https://statsapi.web.nhl.com/api/v1/game/2019030412/feed/live?site=en_nhl
-//      fetch("https://statsapi.web.nhl.com/api/v1/game/2019030412/feed/live?site=en_nhl")
-      fetch("https://statsapi.web.nhl.com/api/v1/game/2019030411/feed/live?site=en_nhl")
-        .then(response => response.json())
-        .then(jsonData => {
-          if(this.isMounted){
-            this.setState({ jsonData: jsonData });
-            console.log("jsondata filled");
-            //this.state.jsonData.liveData.plays.allPlays.forEach(() => this.myFunction);
-            //this.state.jsonData.liveData.plays.allPlays.forEach(myFunction);
-            var allPlays = this.state.jsonData.liveData.plays.allPlays;
-            var i;
+                    // NHL shotmap has negative values but we have only positive.
+                    var translatedCoordinateX = (play.coordinates.x + 99) * horizontalTranslation;
 
-            // the NHL API gives x values from -99 to +99. That gives 199 different values when you count 0
-            var horizontalTranslation = rinkWidth / 199;
-            // the NHL API gives y values from -41 to +41. That gives 83 different values when you count 0
-            var verticalTranslation = rinkHeight / 83;
+                    // With NHL shotmap negative y is south side  of the rink, positive is north side. 
+                    // For us y 0 is up north and from there we go more south the more positive the y value is
+                    // that's why we need to inverse the y axis by subtracting the coordinates from rinkHeight
+                    var translatedCoordinateY = rinkHeight - ((play.coordinates.y + 41) * verticalTranslation);
 
-            //var translatedXCoordinate = play.coordinates.x * horizontalTranslation;
-            //var translatedYCoordinate = play.coordinates.y * verticalTranslation;
+                    //console.log("translated coordinate x "+translatedCoordinateX+" translated y "+translatedCoordinateY);
+                    this.drawCircle(translatedCoordinateX, translatedCoordinateY, '#000000');
 
-
-            if(this.state.context) {
-              this.drawCircle(xOmegaPoint, yOmegaPoint, '#FF0000', 10);
-            
-
-            for (i = 0; i < allPlays.length; i++) {
-              var play = allPlays[i];
-              if(play.result.eventTypeId === "SHOT"){
-                console.log(play.coordinates);
-                // the NHL API gives x values from -99 to +99. That gives 199 different values when you count 0
-                var horizontalTranslation = rinkWidth / 199;
-                // the NHL API gives y values from -41 to +41. That gives 83 different values when you count 0
-                var verticalTranslation = rinkHeight / 83;
-
-                var translatedCoordinateX = (play.coordinates.x + 99) * horizontalTranslation;
-                var translatedCoordinateY = rinkHeight -((play.coordinates.y + 41) * verticalTranslation);
-
-                console.log("translated coordinate x "+translatedCoordinateX+" translated y "+translatedCoordinateY);
-                this.drawCircle(translatedCoordinateX, translatedCoordinateY, '#000000');
-
+                  }
+                }
               }
+
+            }else {
+              console.log("jsondata not filled as the component was not mounted");
             }
-          }
 
-          }else {
-            console.log("jsondata not filled as the component was not mounted");
-          }
+          } );
 
-        } );
+        console.log("jsondata livedata not filled, calling API");
 
-      console.log("jsondata livedata not filled, calling API");
+      }
+
     }
 
 
@@ -170,12 +153,43 @@ export default class App extends React.Component {
     this.isMounted = false;
   }
 
+  handleChange(event) {
+    var parsedUrl = new URL(event.target.value);
+    console.log(parsedUrl.hash); 
+    var result = parsedUrl.hash.replace("#", "").split(',').reduce(function (result, item) {
+        var parts = item.split('=');
+        result[parts[0]] = parts[1];
+        return result;
+    }, {});
+    var game = result["game"];
+
+    if(this.state.context){
+      this.state.context.clearRect(0, 0, rinkWidth, rinkHeight);
+    }
+  
+    this.setState(
+        {
+          jsonData: null, 
+          game: game,
+          nhlGameUrl: event.target.value,
+        }
+      );
+  }
+
   render() {
     return (
       <div
         style={{
           textAlign: 'center',
         }}>
+      <form onSubmit={this.handleSubmit} style={{width: "100%"}}>
+        <label style={{width: "100%"}}>
+          <p>NHL game URL:</p>
+          <input type="text" value={this.state.value} onChange={this.handleChange} style={{width: "60%"}} />
+        </label>
+        <p>Game:  {this.state.game} </p>        
+      </form>
+
         <canvas
           id="canvas"
           ref={this.canvasRef}
@@ -206,11 +220,10 @@ export default class App extends React.Component {
     borderRadiusStyle = borderRadiusStyle + "px";
     var xOmegaPoint = rinkWidth / 2;
     var yOmegaPoint = rinkHeight / 2;
-
-
-    function myFunction(item, index) {
-      console.log(item.coordinates);
-    }
+    // the NHL API gives x values from -99 to +99. That gives 199 different values when you count 0
+    var horizontalTranslation = rinkWidth / 199;
+    // the NHL API gives y values from -41 to +41. That gives 83 different values when you count 0
+    var verticalTranslation = rinkHeight / 83;
   
 
 //export default Canvas
