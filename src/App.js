@@ -44,6 +44,7 @@ export default class App extends React.Component {
     this.handleGameEventTypeChange = this.handleGameEventTypeChange.bind(this);
     this.displayAwayTeamHandler = this.displayAwayTeamHandler.bind(this);
     this.displayHomeTeamHandler = this.displayHomeTeamHandler.bind(this);
+    this.displayPeriodHandler = this.displayPeriodHandler.bind(this);
   }
 
   drawCircle(x, y, color, radius = 5){
@@ -121,6 +122,11 @@ export default class App extends React.Component {
             continue;
           }
 
+          if( ! this.state.showPeriods[play.about.period-1]){
+            // this play happened in period that has been filtered out by user
+            continue;
+          }
+
           if( ! this.state.displayAwayTeam && play.team.triCode === awayTeamAbbreviation) {
             // we don't want to display away team plays
             continue;
@@ -166,10 +172,10 @@ export default class App extends React.Component {
     fetch("https://statsapi.web.nhl.com/api/v1/game/"+this.state.game+"/feed/live?site=en_nhl")
         .then(response => response.json())
         .then(jsonData => {
-            this.setState({ jsonData: jsonData });
             console.log("jsondata filled with game "+this.state.game);
             this.setState(
               {
+                showPeriods: new Array(jsonData.liveData.linescore.periods.length).fill(true),
                 jsonData: jsonData,
                 awayTeam: jsonData.gameData.teams.away,
                 homeTeam: jsonData.gameData.teams.home,
@@ -252,6 +258,15 @@ export default class App extends React.Component {
     );
   }
 
+  displayPeriodHandler(event){
+    console.log(this.state.showPeriods);
+    console.log("Changing value "+event.target.value);
+
+    let showPeriods = this.state.showPeriods;
+    showPeriods[event.target.value] = event.target.checked;
+    this.setState({showPeriods: showPeriods});
+  }
+
   render() {
     return (
       <div
@@ -267,12 +282,11 @@ export default class App extends React.Component {
           <p>Game:  {this.state.game} </p>
         </form>
 
-         
         <p>
-          {this.state.awayTeam && <Checkbox value="awayTeamCheckBox" defaultChecked="{this.state.displayAwayTeam}" onChange={this.displayAwayTeamHandler} />}
+          {this.state.awayTeam && <Checkbox value="awayTeamCheckBox" defaultChecked={this.state.displayAwayTeam} onChange={this.displayAwayTeamHandler} />}
           {this.state.awayTeam && this.state.awayTeam.name}&nbsp;
           @ 
-          {this.state.homeTeam && <Checkbox value="homeTeamCheckBox" defaultChecked="{this.state.displayHomeTeam}" onChange={this.displayHomeTeamHandler} />}
+          {this.state.homeTeam && <Checkbox value="homeTeamCheckBox" defaultChecked={this.state.displayHomeTeam} onChange={this.displayHomeTeamHandler} />}
           {this.state.homeTeam && this.state.homeTeam.name}
         </p>
 
@@ -294,6 +308,18 @@ export default class App extends React.Component {
           )}
         />
         
+        <p>Show periods:</p>
+        {this.state.jsonData &&
+          Array.apply(null, { length: this.state.jsonData.liveData.linescore.periods.length}).map((e, i) => (
+            <span className="busterCards" key={i}>
+              <Checkbox defaultChecked={true} value={i} onChange={this.displayPeriodHandler} />
+                {this.state.jsonData.liveData.linescore.periods[i].ordinalNum}
+            </span>
+          ))
+        }
+
+        <br/>
+
         <Box style={{backgroundColor: gameEventTypeOptions[0].color, width: "20px", height: "20px", marginLeft: "20px", display: "inline-block"}} />
         <span style={{paddingLeft: "25px"}}>{gameEventTypeOptions[0].label}</span>
         

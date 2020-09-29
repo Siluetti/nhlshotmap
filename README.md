@@ -16,6 +16,14 @@ https://statsapi.web.nhl.com/api/v1/tournaments/playoffs?site=en_nhl&expand=roun
 https://statsapi.web.nhl.com/api/v1/schedule?startDate=2020-09-19&endDate=2020-09-19&hydrate=team,linescore,broadcasts(all),tickets,game(content(media(epg)),seriesSummary),radioBroadcasts,metadata,seriesSummary(series)&site=en_nhlNORDIC&teamId=&gameType=&timecode=
 
 
+TODO list:
+    - Fetch latest games: https://statsapi.web.nhl.com/api/v1/schedule?startDate=2020-09-27&endDate=2020-09-30&hydrate=team,linescore,broadcasts(all),tickets,game(content(media(epg)),seriesSummary),radioBroadcasts,metadata,seriesSummary(series)&site=en_nhlNORDIC&teamId=&gameType=&timecode=
+    - Show players and info on mousehover
+    - Set events on either left or right side of the rink
+    - Create a heat map
+    - add aggregate data depending on player
+
+
 $ npm install -g @aws-amplify/cli
 $ amplify configure
 
