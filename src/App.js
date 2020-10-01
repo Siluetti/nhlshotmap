@@ -6,6 +6,8 @@ import Autocomplete from '@material-ui/lab/Autocomplete';
 import TextField from '@material-ui/core/TextField';
 import Checkbox from '@material-ui/core/Checkbox';
 import Box from '@material-ui/core/Box';
+import Tooltip from '@material-ui/core/Tooltip';
+
 
 
 
@@ -45,6 +47,7 @@ export default class App extends React.Component {
     this.displayAwayTeamHandler = this.displayAwayTeamHandler.bind(this);
     this.displayHomeTeamHandler = this.displayHomeTeamHandler.bind(this);
     this.displayPeriodHandler = this.displayPeriodHandler.bind(this);
+    this.onMouseMove = this.onMouseMove.bind(this);
   }
 
   drawCircle(x, y, color, radius = 5){
@@ -55,10 +58,12 @@ export default class App extends React.Component {
     var endAngle = 2 * Math.PI; // End point on circle
     var anticlockwise = false; // clockwise or anticlockwise
 
-    this.state.context.arc(x, y, radius, startAngle, endAngle, anticlockwise);
+    const circle = new Path2D();
+    circle.arc(x, y, radius, startAngle, endAngle, anticlockwise);
 
-    this.state.context.fill();
+    this.state.context.fill(circle);
     this.state.context.closePath();
+    return circle;
   }
 
   componentDidMount(){
@@ -66,7 +71,7 @@ export default class App extends React.Component {
 
     if (this.canvasRef.current) {
       const renderCtx = this.canvasRef.current.getContext('2d');
-
+      this.canvasRef.current.onmousemove = this.onMouseMove;
       if (renderCtx) {
         this.state.context = renderCtx;
       }
@@ -149,7 +154,14 @@ export default class App extends React.Component {
             var translatedCoordinateY = rinkHeight - ((play.coordinates.y + 41) * verticalTranslation);
   
             //console.log("translated coordinate x "+translatedCoordinateX+" translated y "+translatedCoordinateY);
-            this.drawCircle(translatedCoordinateX, translatedCoordinateY, element.color);
+            let circle = this.drawCircle(translatedCoordinateX, translatedCoordinateY, element.color);
+            if (this.state.mouseX && this.state.mouseY && this.state.context.isPointInPath(circle, this.state.mouseX, this.state.mouseY)) {
+              let circle = this.drawCircle(translatedCoordinateX, translatedCoordinateY, element.color, 20);
+              
+              this.state.context.fillStyle = "#000000";
+              this.state.context.font = "20px Georgia";
+              this.state.context.fillText(play.result.description, translatedCoordinateX+30, translatedCoordinateY);
+            } 
           }
         }
       });
@@ -166,6 +178,16 @@ export default class App extends React.Component {
 
       console.log("jsondata livedata not filled, calling API");
     }
+
+  }
+
+  onMouseMove(event){
+    this.setState(
+      {
+        mouseX: event.offsetX,
+        mouseY: event.offsetY,
+      }
+    );
   }
 
   getDataFromNhlApi(){

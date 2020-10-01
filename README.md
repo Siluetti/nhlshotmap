@@ -3,6 +3,10 @@ This was created using following: https://aws.amazon.com/blogs/mobile/amplify-fr
 Checkout these https://docs.amplify.aws/ui/q/framework/react
 
 
+Test URL's: 
+https://www.nhl.com/gamecenter/nyi-vs-fla/2020/08/05/2019030043#game=2019030043,game_state=final
+https://www.nhl.com/gamecenter/dal-vs-tbl/2020/09/26/2019030415#game=2019030415,game_state=final
+
 TODO:
 statsapi integration:
 https://statsapi.web.nhl.com/api/v1/game/2019030411/feed/live?site=en_nhl <-- search for keyword "shot"
@@ -22,6 +26,8 @@ TODO list:
     - Set events on either left or right side of the rink
     - Create a heat map
     - add aggregate data depending on player
+    - draw faceoff places
+    - draw cirles around 
 
 
 $ npm install -g @aws-amplify/cli
