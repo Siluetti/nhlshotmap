@@ -26,8 +26,10 @@ TODO list:
     - Set events on either left or right side of the rink
     - Create a heat map
     - add aggregate data depending on player
-    - draw faceoff places
-    - draw cirles around 
+    - draw faceoff spots
+    - draw cirles around faceoff spots
+    - draw goals to the ice
+    - responsive design
 
 
 $ npm install -g @aws-amplify/cli

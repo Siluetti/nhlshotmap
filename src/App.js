@@ -7,6 +7,7 @@ import TextField from '@material-ui/core/TextField';
 import Checkbox from '@material-ui/core/Checkbox';
 import Box from '@material-ui/core/Box';
 import Tooltip from '@material-ui/core/Tooltip';
+import MouseTooltip from 'react-sticky-mouse-tooltip';
 
 
 
@@ -17,6 +18,8 @@ export default class App extends React.Component {
   // _isMounted is here only for solving an issue with data fetching:
   // https://stackoverflow.com/questions/53949393/cant-perform-a-react-state-update-on-an-unmounted-component
   _isMounted = false;
+  inversedEvents = true;
+  selectedPlay = null;
 
   set isMounted(isMounted){
     this._isMounted = isMounted;
@@ -41,6 +44,7 @@ export default class App extends React.Component {
       gameEventTypes: [gameEventTypeOptions[DEFAULT_GAME_EVENT_INDEX]],
       displayAwayTeam: true,
       displayHomeTeam: true,
+      isMouseTooltipVisible: false,
     }
     this.handleGameUrlChange = this.handleGameUrlChange.bind(this);
     this.handleGameEventTypeChange = this.handleGameEventTypeChange.bind(this);
@@ -48,6 +52,7 @@ export default class App extends React.Component {
     this.displayHomeTeamHandler = this.displayHomeTeamHandler.bind(this);
     this.displayPeriodHandler = this.displayPeriodHandler.bind(this);
     this.onMouseMove = this.onMouseMove.bind(this);
+    this.displayEventsOnOneSideHandler = this.displayEventsOnOneSideHandler.bind(this);
   }
 
   drawCircle(x, y, color, radius = 5){
@@ -118,31 +123,43 @@ export default class App extends React.Component {
       var awayTeamAbbreviation = this.state.jsonData.gameData.teams.away.triCode;
 
       var i;
+      var localSelectedPlay = null;
       this.state.gameEventTypes.forEach(element => {
         for (i = 0; i < allPlays.length; i++) {
           var play = allPlays[i];
 
-          if( ! play.coordinates || ! play.team){
+          if ( ! play.coordinates || ! play.team){
             // no need to render plays where there are no team or coordinates
             continue;
           }
 
-          if( ! this.state.showPeriods[play.about.period-1]){
+          if ( ! this.state.showPeriods[play.about.period-1]){
             // this play happened in period that has been filtered out by user
             continue;
           }
 
-          if( ! this.state.displayAwayTeam && play.team.triCode === awayTeamAbbreviation) {
+          if ( ! this.state.displayAwayTeam && play.team.triCode === awayTeamAbbreviation) {
             // we don't want to display away team plays
             continue;
           }
           
-          if( ! this.state.displayHomeTeam && play.team.triCode === homeTeamAbbreviation) {
+          if ( ! this.state.displayHomeTeam && play.team.triCode === homeTeamAbbreviation) {
             // we don't want to display home team plays
             continue;
           }
-    
-          if(play.result.eventTypeId === element.value){
+          
+          if ( this.inversedEvents == false) {
+            // By default the events are distributed on both ends of the ice for one team.
+            // In this case the user has selected to show events on one side of the rink.
+            // If period is even, we want to show the events in one side of the rink for certain team
+            if ( play.about.period % 2 == 0 ) {
+              // inverse the coordinates
+              play.coordinates.x = -play.coordinates.x;
+              play.coordinates.y = -play.coordinates.y;
+            }
+          }
+
+          if (play.result.eventTypeId === element.value){
             //console.log(play.coordinates);
   
             // NHL shotmap has negative values but we have only positive.
@@ -156,6 +173,7 @@ export default class App extends React.Component {
             //console.log("translated coordinate x "+translatedCoordinateX+" translated y "+translatedCoordinateY);
             let circle = this.drawCircle(translatedCoordinateX, translatedCoordinateY, element.color);
             if (this.state.mouseX && this.state.mouseY && this.state.context.isPointInPath(circle, this.state.mouseX, this.state.mouseY)) {
+              localSelectedPlay = play;
               let circle = this.drawCircle(translatedCoordinateX, translatedCoordinateY, element.color, 20);
               
               this.state.context.fillStyle = "#000000";
@@ -166,7 +184,18 @@ export default class App extends React.Component {
         }
       });
 
-    
+      if ( this.inversedEvents == false) {
+        this.inversedEvents = true;
+      }
+
+
+      if(localSelectedPlay){
+        this.selectedPlay = localSelectedPlay;
+      } else {
+        this.selectedPlay = null;
+      }
+
+
     } else {
       console.log("checking nhl game url");
       if( ! this.state.game){
@@ -195,6 +224,7 @@ export default class App extends React.Component {
         .then(response => response.json())
         .then(jsonData => {
             console.log("jsondata filled with game "+this.state.game);
+            this.inversedEvents = false;
             this.setState(
               {
                 showPeriods: new Array(jsonData.liveData.linescore.periods.length).fill(true),
@@ -288,7 +318,15 @@ export default class App extends React.Component {
     showPeriods[event.target.value] = event.target.checked;
     this.setState({showPeriods: showPeriods});
   }
+  
+  displayEventsOnOneSideHandler(event){
+    console.log("Changing showEventsOnOneSide "+event.target.checked);
 
+    this.inversedEvents = false;
+    // this is only for triggering event
+    this.setState({showEventsOnOneSide: event.target.checked});
+  }
+  
   render() {
     return (
       <div
@@ -333,11 +371,19 @@ export default class App extends React.Component {
         <p>Show periods:</p>
         {this.state.jsonData &&
           Array.apply(null, { length: this.state.jsonData.liveData.linescore.periods.length}).map((e, i) => (
-            <span className="busterCards" key={i}>
+            <span className="periodHandlerSpan" key={i}>
               <Checkbox defaultChecked={true} value={i} onChange={this.displayPeriodHandler} />
                 {this.state.jsonData.liveData.linescore.periods[i].ordinalNum}
             </span>
           ))
+        }
+
+        <br/>
+        <span>Single rink side:</span>
+        {this.state.jsonData &&
+          <Tooltip title="If selected, show events on one side of the rink for each team (away team goal left, home team goal right). If unselected, show events like they happened in the game (switching rink sides apply).">
+            <Checkbox defaultChecked={true} value="showEventsOnOneSideOfTheRink" onChange={this.displayEventsOnOneSideHandler} />
+          </Tooltip>
         }
 
         <br/>
@@ -382,7 +428,21 @@ export default class App extends React.Component {
             marginTop: 10,
           }}
         ></canvas>
-
+        <MouseTooltip
+          visible={this.selectedPlay}
+          offsetX={15}
+          offsetY={10}
+        >
+          {this.selectedPlay &&
+          <span>
+            <p>{this.selectedPlay.team.name}<br/>
+            {this.selectedPlay.result.event}<br/>
+            {this.selectedPlay.result.description}<br/>
+            Period: {this.selectedPlay.about.ordinalNum}<br/>
+            Period time: {this.selectedPlay.about.periodTime}</p>
+          </span>
+        }
+        </MouseTooltip>
         <p>Width:  {window.innerWidth} </p>        
       </div>
     );
