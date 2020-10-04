@@ -71,6 +71,83 @@ export default class App extends React.Component {
     return circle;
   }
 
+  drawCircleWithBorder(x, y, color, radius = 5, borderColor = 'red', borderWidth = '2'){
+    this.state.context.beginPath();
+    this.state.context.fillStyle = color;
+
+    var startAngle = 0; // Starting point on circle
+    var endAngle = 2 * Math.PI; // End point on circle
+    var anticlockwise = false; // clockwise or anticlockwise
+
+    const circle = new Path2D();
+    circle.arc(x, y, radius, startAngle, endAngle, anticlockwise);
+
+    this.state.context.fill(circle);
+    this.state.context.lineWidth = borderWidth;
+    this.state.context.strokeStyle = borderColor;
+    this.state.context.stroke(circle);
+    this.state.context.closePath();
+    return circle;
+  }
+
+  drawArcWithBorder(x, y, color, radius = 5, borderColor = 'red', borderWidth = '2', startAngle = 0, endAngle = Math.PI){
+    this.state.context.beginPath();
+    this.state.context.fillStyle = color;
+
+    var anticlockwise = false; // clockwise or anticlockwise
+
+    const arc = new Path2D();
+    arc.arc(x, y, radius, startAngle, endAngle, anticlockwise);
+
+    this.state.context.fill(arc);
+    this.state.context.lineWidth = borderWidth;
+    this.state.context.strokeStyle = borderColor;
+    this.state.context.stroke(arc);
+    this.state.context.closePath();
+    return arc;
+  }
+
+  drawRoundedRectangle( x = leftGoalLine - (rinkWidth * 0.0165), 
+                        y = goalCreaseVerticalPosition - (rinkWidth * 0.015), 
+                        width = (rinkWidth * 0.0165), 
+                        height = (rinkWidth * 0.03), 
+                        fillColor = '#FFFFFF',
+                        topLeftRadius = 5, 
+                        topRightRadius = 0, 
+                        bottomLeftRadius = 5, 
+                        bottomRightRadius = 0, 
+                        borderWidth = 2, 
+                        borderColor = '#FF0000'){
+    this.state.context.fillStyle = fillColor;
+    this.state.context.beginPath();
+    this.state.context.moveTo(x+width, y+height);
+    this.state.context.arcTo( x, 
+                              y + height, 
+                              x,
+                              y, 
+                              bottomLeftRadius);
+    this.state.context.arcTo( x,
+                              y,  
+                              x+width,
+                              y, 
+                              topLeftRadius);
+    this.state.context.arcTo( x+width,
+                              y, 
+                              x+width,
+                              y+height, 
+                              topRightRadius);
+    this.state.context.arcTo( x+width,
+                              y+height, 
+                              x,
+                              y+height, 
+                              bottomRightRadius);
+    this.state.context.fill();
+    this.state.context.lineWidth = borderWidth;
+    this.state.context.strokeStyle = borderColor;
+    this.state.context.stroke();
+    this.state.context.closePath();
+  }
+
   componentDidMount(){
     this.isMounted = true;
 
@@ -108,9 +185,72 @@ export default class App extends React.Component {
     this.state.context.fillStyle = '#0000ff';
     this.state.context.fillRect(leftBlueLine, 0, lineWidth, rinkHeight);
 
-    // draw center red circle
-    this.drawCircle(xOmegaPoint, yOmegaPoint, '#FF0000', 10);
+    // Draw a red faceoff circle
+    this.drawCircleWithBorder(xOmegaPoint, yOmegaPoint, '#FFFFFF', faceoffCircleRadius);
+        
+    // Draw a red centre line
+    this.state.context.fillStyle = '#ff0000';
+    this.state.context.fillRect(centreLine, 0, centreLineWidth, rinkHeight);
+    
+    // draw center blue faceoff spot 
+    this.drawCircle(xOmegaPoint, yOmegaPoint, '#0000FF', centerFaceoffSpotRadius);
 
+    // Draw away team top red faceoff circle
+    this.drawCircleWithBorder(awayTeamDefendingFaceoffSpotHorizontalPosition, topFaceoffSpotsVerticalPositions, '#FFFFFF', faceoffCircleRadius);
+    // draw away team red top defending side faceoff spot 
+    this.drawCircle(awayTeamDefendingFaceoffSpotHorizontalPosition, topFaceoffSpotsVerticalPositions, '#FF0000', faceoffSpotRadius);
+
+    // Draw away team bottom red faceoff circle
+    this.drawCircleWithBorder(awayTeamDefendingFaceoffSpotHorizontalPosition, bottomFaceoffSpotsVerticalPositions, '#FFFFFF', faceoffCircleRadius);
+    // draw away team red bottom defending side faceoff spot 
+    this.drawCircle(awayTeamDefendingFaceoffSpotHorizontalPosition, bottomFaceoffSpotsVerticalPositions, '#FF0000', faceoffSpotRadius);
+
+    // draw away team red top neutral side faceoff spot 
+    this.drawCircle(awayTeamNeutralFaceoffSpotHorizontalPosition, topFaceoffSpotsVerticalPositions, '#FF0000', faceoffSpotRadius);
+
+    // draw away team red bottom neutral side faceoff spot 
+    this.drawCircle(awayTeamNeutralFaceoffSpotHorizontalPosition, bottomFaceoffSpotsVerticalPositions, '#FF0000', faceoffSpotRadius);
+    
+    // Draw home team bottom red faceoff circle
+    this.drawCircleWithBorder(homeTeamDefendingFaceoffSpotHorizontalPosition, topFaceoffSpotsVerticalPositions, '#FFFFFF', faceoffCircleRadius);
+    // draw home team red top defending side faceoff spot 
+    this.drawCircle(homeTeamDefendingFaceoffSpotHorizontalPosition, topFaceoffSpotsVerticalPositions, '#FF0000', faceoffSpotRadius);
+
+    // Draw home team bottom red faceoff circle
+    this.drawCircleWithBorder(homeTeamDefendingFaceoffSpotHorizontalPosition, bottomFaceoffSpotsVerticalPositions, '#FFFFFF', faceoffCircleRadius);
+    // draw home team red bottom defending side faceoff spot 
+    this.drawCircle(homeTeamDefendingFaceoffSpotHorizontalPosition, bottomFaceoffSpotsVerticalPositions, '#FF0000', faceoffSpotRadius);
+
+    // draw home team red top neutral side faceoff spot 
+    this.drawCircle(homeTeamNeutralFaceoffSpotHorizontalPosition, topFaceoffSpotsVerticalPositions, '#FF0000', faceoffSpotRadius);
+
+    // draw home team red bottom neutral side faceoff spot 
+    this.drawCircle(homeTeamNeutralFaceoffSpotHorizontalPosition, bottomFaceoffSpotsVerticalPositions, '#FF0000', faceoffSpotRadius);
+    
+    // draw away team goal crease 
+    this.drawArcWithBorder(leftGoalLine+lineWidth, goalCreaseVerticalPosition, '#67C6DD', goalCreaseRadius, '#FF0000', 2, 0 - Math.PI / 2, Math.PI / 2);
+
+    // draw home team goal crease 
+    this.drawArcWithBorder(rightGoalLine, goalCreaseVerticalPosition, '#67C6DD', goalCreaseRadius, '#FF0000', 2, Math.PI / 2, Math.PI * 1.5);
+
+    // draw away team goal
+    this.drawRoundedRectangle(leftGoalLine - goalDeepness + lineWidth/2, 
+                              goalCreaseVerticalPosition - (goalWidth/2), 
+                              goalDeepness, 
+                              goalWidth, 
+                              '#FFFFFF', 
+                              rinkWidth*0.003,0,rinkWidth*0.003,0, rinkWidth*0.0015, '#FF0000'
+                              );
+    
+    // draw home team goal
+    this.drawRoundedRectangle(rightGoalLine+lineWidth/2, 
+                              goalCreaseVerticalPosition - (goalWidth/2), 
+                              goalDeepness, 
+                              goalWidth, 
+                              '#FFFFFF', 
+                              0,rinkWidth*0.003,0,rinkWidth*0.003, rinkWidth*0.0015, '#FF0000'
+                              );
+    
     if(this.state.jsonData && this.state.jsonData.liveData) {
       console.log("jsondata livedata filled");
       var allPlays = this.state.jsonData.liveData.plays.allPlays;
@@ -133,6 +273,19 @@ export default class App extends React.Component {
             continue;
           }
 
+          // we have to inverse events before doing anything else as if we have filtered something out
+          //  we might get some of the events inversed and some not
+          if ( this.inversedEvents == false) {
+            // By default the events are distributed on both ends of the ice for one team.
+            // In this case the user has selected to show events on one side of the rink.
+            // If period is even, we want to show the events in one side of the rink for certain team
+            if ( play.about.period % 2 == 0 ) {
+              // inverse the coordinates
+              play.coordinates.x = -play.coordinates.x;
+              play.coordinates.y = -play.coordinates.y;
+            }
+          }
+
           if ( ! this.state.showPeriods[play.about.period-1]){
             // this play happened in period that has been filtered out by user
             continue;
@@ -148,17 +301,6 @@ export default class App extends React.Component {
             continue;
           }
           
-          if ( this.inversedEvents == false) {
-            // By default the events are distributed on both ends of the ice for one team.
-            // In this case the user has selected to show events on one side of the rink.
-            // If period is even, we want to show the events in one side of the rink for certain team
-            if ( play.about.period % 2 == 0 ) {
-              // inverse the coordinates
-              play.coordinates.x = -play.coordinates.x;
-              play.coordinates.y = -play.coordinates.y;
-            }
-          }
-
           if (play.result.eventTypeId === element.value){
             //console.log(play.coordinates);
   
@@ -434,13 +576,20 @@ export default class App extends React.Component {
           offsetY={10}
         >
           {this.selectedPlay &&
-          <span>
+          <div 
+            style={{            
+              border: '2px solid #000',
+              backgroundColor: 'white',
+              textAlign: 'left',
+              paddingLeft: '10px',
+              paddingRight: '10px',
+            }}>
             <p>{this.selectedPlay.team.name}<br/>
             {this.selectedPlay.result.event}<br/>
             {this.selectedPlay.result.description}<br/>
             Period: {this.selectedPlay.about.ordinalNum}<br/>
             Period time: {this.selectedPlay.about.periodTime}</p>
-          </span>
+          </div>
         }
         </MouseTooltip>
         <p>Width:  {window.innerWidth} </p>        
@@ -451,7 +600,7 @@ export default class App extends React.Component {
 
     // According to Wikipedia https://en.wikipedia.org/wiki/Ice_hockey_rink#:~:text=Most%20North%20American%20rinks%20follow,m)%20from%20the%20end%20boards.
     // ice hockey rink is by default 200 feet times 85 feet
-    // so let's set the width to 80 % of the window width and then multiply this with 42.5 % to get the height
+    // so let's set the width to 80 % of the window width and then multiply this with 42.5 % to get the height of the rink
     const windowWidth = window.innerWidth;
     const rinkWidth = windowWidth * 0.8;
     const rinkHeight = rinkWidth * 0.425;
@@ -464,15 +613,55 @@ export default class App extends React.Component {
     var horizontalTranslation = rinkWidth / 199;
     // the NHL API gives y values from -41 to +41. That gives 83 different values when you count 0
     var verticalTranslation = rinkHeight / 83;
-    // goal lines are 11 feet from the end boards which means 5.5 % and 94.5 %
+    // goal lines are 11 feet from the end boards which means 5.5 % and 94.5 % of rink width
     var leftGoalLine = rinkWidth * 0.055;
     var rightGoalLine = rinkWidth * 0.945;
-    var lineWidth = rinkWidth * 0.0025;
-    // Blue lines are 75 feet from the end boards which makes 32.5 % and 67.5 %
+    var centreLine = rinkWidth * 0.499;
+    var centreLineWidth = rinkWidth * 0.0021;
+
+    var lineWidth = rinkWidth * 0.0021;
+    // Blue lines are 75 feet from the end boards which makes 32.5 % and 67.5 % of rink width
     var leftBlueLine = rinkWidth * 0.325;
     var rightBlueLine = rinkWidth * 0.675;
+    // default game event is "shot"
     const DEFAULT_GAME_EVENT_INDEX = 3;
+    // faceoff circle is 30 feet in diameter, meaning 15 by radius, which means 7,5 % of rink width
+    var faceoffCircleRadius = rinkWidth * 0.075;
+    // faceoff spot is 1 foot in diameter, meaning 0,5 foot in radius, which means 0,25 % of rink width
+    var centerFaceoffSpotRadius = rinkWidth * 0.0025;
+    // for all other faceoff spots the radius is 2 feet
+    var faceoffSpotRadius = rinkWidth * 0.005;
     
+    // According usahockeyrulebook https://www.usahockeyrulebook.com/page/show/1082185-rule-104-face-off-spots-and-face-off-circles
+    // section d
+    // twenty feet (20') from the back of the goal lines, meaning leftGoalLine + (20 / 200=) 10 % 
+    var awayTeamDefendingFaceoffSpotHorizontalPosition = leftGoalLine + (rinkWidth * 0.1);
+    // twenty feet (20') from the back of the goal lines, meaning rightGoalLine - (20 / 200=) 10 % 
+    var homeTeamDefendingFaceoffSpotHorizontalPosition = rightGoalLine - (rinkWidth * 0.1);
+
+    // section c
+    // five feet (5') from the neutral zone side of the blue lines, meaning left blue line position + (5/200 =) 2,5 % 
+    var awayTeamNeutralFaceoffSpotHorizontalPosition = leftBlueLine + (rinkWidth * 0.025);
+    // five feet (5') from the neutral zone side of the blue lines, right blue line position - (5/200 =) 2,5 %
+    var homeTeamNeutralFaceoffSpotHorizontalPosition = rightBlueLine - (rinkWidth * 0.025);
+
+    // all top faceoff spots are in the same vertical position, which is 21,25 feet from top (rink height of 85 feet divided by 4)
+    var topFaceoffSpotsVerticalPositions = rinkHeight / 4;
+    
+    // all top faceoff spots are in the same vertical position, which is 21,25 feet from bottom (rink height of 85 feet divided by 4 multiplied with 3)
+    var bottomFaceoffSpotsVerticalPositions = rinkHeight / 4 * 3;
+
+    // goal crease is 8 feet in diameter, meaning 4 in radius 4 / 200 = 2 % 
+    var goalCreaseRadius = rinkWidth * 0.02;
+    var goalCreaseVerticalPosition = rinkHeight / 2;
+
+    // According to https://en.wikipedia.org/wiki/Goal_(ice_hockey)
+    // goal is 3,3 feet deep, which translates to (3,3 / 200 =) 1,65 %
+    var goalDeepness = rinkWidth * 0.0165;
+    
+    // goal is 6 feet wide, so half goal width is 6 feet, which translates to (6 / 200 =) 3 %
+    var goalWidth = rinkWidth * 0.03;
+
     var gameEventTypeOptions = [
 /*      { value: 'GAME_SCHEDULED', label: 'Game Scheduled' },
       { value: 'PERIOD_READY', label: 'Period ready' },

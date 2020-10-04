@@ -22,14 +22,24 @@ https://statsapi.web.nhl.com/api/v1/schedule?startDate=2020-09-19&endDate=2020-0
 
 TODO list:
     - Fetch latest games: https://statsapi.web.nhl.com/api/v1/schedule?startDate=2020-09-27&endDate=2020-09-30&hydrate=team,linescore,broadcasts(all),tickets,game(content(media(epg)),seriesSummary),radioBroadcasts,metadata,seriesSummary(series)&site=en_nhlNORDIC&teamId=&gameType=&timecode=
-    - Show players and info on mousehover
-    - Set events on either left or right side of the rink
     - Create a heat map
     - add aggregate data depending on player
-    - draw faceoff spots
-    - draw cirles around faceoff spots
-    - draw goals to the ice
     - responsive design
+    - when one spot has multiple events (e.g. see faceoffs) then show the items as a list
+    - add nhl coordinates and converted coordinates to datatip when URL has ?showCoordinates=true
+    - add multigame possibility for playoff series
+    - add multigame possibility for different games
+    - add Google analytics
+    - BUG: when event is down on the rink, the datatip goes off the browser screen
+        - to repeat 
+            - set this game: https://www.nhl.com/gamecenter/dal-vs-tbl/2020/09/26/2019030415#game=2019030415,game_state=final
+            - only select OT period
+            - see left bottom side of the rink
+    - BUG: when clicking "Single rink side" with "Goals" selected, the feature breaks
+        - to repeat 
+            - set this game: https://www.nhl.com/gamecenter/dal-vs-tbl/2020/09/26/2019030415#game=2019030415,game_state=final
+            - select "Goals" from the "Filter game events"
+            - click Single rink side multiple times, it should not register second mouse click
 
 
 $ npm install -g @aws-amplify/cli
