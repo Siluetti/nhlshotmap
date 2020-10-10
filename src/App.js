@@ -8,13 +8,22 @@ import Checkbox from '@material-ui/core/Checkbox';
 import Box from '@material-ui/core/Box';
 import Tooltip from '@material-ui/core/Tooltip';
 import MouseTooltip from 'react-sticky-mouse-tooltip';
-
-
-
+import { connect } from "react-redux";
+import {selectStartDateAction, selectEndDateAction} from "./actions/selectDateAction";
+import {DatePicker, MuiPickersUtilsProvider} from '@material-ui/pickers';
+import DateFnsUtils from '@date-io/date-fns'; 
+import {format} from 'date-fns'; 
+import Tabs from '@material-ui/core/Tabs';
+import Tab from '@material-ui/core/Tab';
+import TabPanel from '@material-ui/lab/TabPanel';
+import AppBar from '@material-ui/core/AppBar';
+import GameEventTypeLegend from "./components/GameEventTypeLegend";
+import { GAME_EVENT_TYPE_OPTIONS, DEFAULT_GAME_EVENT_INDEX } from "./constants/gameEventTypeConstants";
+import { getRinkDimensions } from "./constants/rinkDimensions";
 
 
 // the canvas logic has been taken from here: https://medium.com/better-programming/add-an-html-canvas-into-your-react-app-176dab099a79
-export default class App extends React.Component {
+class App extends React.Component {
   // _isMounted is here only for solving an issue with data fetching:
   // https://stackoverflow.com/questions/53949393/cant-perform-a-react-state-update-on-an-unmounted-component
   _isMounted = false;
@@ -41,11 +50,17 @@ export default class App extends React.Component {
       game: null,
       awayTeam: null,
       homeTeam: null,
-      gameEventTypes: [gameEventTypeOptions[DEFAULT_GAME_EVENT_INDEX]],
+      gameEventTypes: [GAME_EVENT_TYPE_OPTIONS[DEFAULT_GAME_EVENT_INDEX]],
       displayAwayTeam: true,
       displayHomeTeam: true,
       isMouseTooltipVisible: false,
+      tabIndex: 0,
+      rinkDimensions: getRinkDimensions(window),
     }
+
+    this.mouseTooltipDivRef = React.createRef();
+
+
     this.handleGameUrlChange = this.handleGameUrlChange.bind(this);
     this.handleGameEventTypeChange = this.handleGameEventTypeChange.bind(this);
     this.displayAwayTeamHandler = this.displayAwayTeamHandler.bind(this);
@@ -53,6 +68,8 @@ export default class App extends React.Component {
     this.displayPeriodHandler = this.displayPeriodHandler.bind(this);
     this.onMouseMove = this.onMouseMove.bind(this);
     this.displayEventsOnOneSideHandler = this.displayEventsOnOneSideHandler.bind(this);
+    this.handleTabChange = this.handleTabChange.bind(this);
+    this.updateDimensions = this.updateDimensions.bind(this);
   }
 
   drawCircle(x, y, color, radius = 5){
@@ -107,10 +124,10 @@ export default class App extends React.Component {
     return arc;
   }
 
-  drawRoundedRectangle( x = leftGoalLine - (rinkWidth * 0.0165), 
-                        y = goalCreaseVerticalPosition - (rinkWidth * 0.015), 
-                        width = (rinkWidth * 0.0165), 
-                        height = (rinkWidth * 0.03), 
+  drawRoundedRectangle( x = this.state.rinkDimensions.leftGoalLine - (this.state.rinkDimensions.rinkWidth * 0.0165), 
+                        y = this.state.rinkDimensions.goalCreaseVerticalPosition - (this.state.rinkDimensions.rinkWidth * 0.015), 
+                        width = (this.state.rinkDimensions.rinkWidth * 0.0165), 
+                        height = (this.state.rinkDimensions.rinkWidth * 0.03), 
                         fillColor = '#FFFFFF',
                         topLeftRadius = 5, 
                         topRightRadius = 0, 
@@ -151,6 +168,7 @@ export default class App extends React.Component {
   componentDidMount(){
     this.isMounted = true;
 
+    window.addEventListener('resize', this.updateDimensions);
     if (this.canvasRef.current) {
       const renderCtx = this.canvasRef.current.getContext('2d');
       this.canvasRef.current.onmousemove = this.onMouseMove;
@@ -167,6 +185,65 @@ export default class App extends React.Component {
       return;
     }
     
+    let rinkWidth = this.state.rinkDimensions.rinkWidth;
+    let rinkHeight = this.state.rinkDimensions.rinkHeight;
+    // corner radius is 28 feet which makes it 14 %
+    let xOmegaPoint = this.state.rinkDimensions.xOmegaPoint;
+    let yOmegaPoint = this.state.rinkDimensions.yOmegaPoint;
+    // the NHL API gives x values from -99 to +99. That gives 199 different values when you count 0
+    let horizontalTranslation = this.state.rinkDimensions.horizontalTranslation;
+    // the NHL API gives y values from -41 to +41. That gives 83 different values when you count 0
+    let verticalTranslation = this.state.rinkDimensions.verticalTranslation;
+    // goal lines are 11 feet from the end boards which means 5.5 % and 94.5 % of rink width
+    let leftGoalLine = this.state.rinkDimensions.leftGoalLine;
+    let rightGoalLine = this.state.rinkDimensions.rightGoalLine;
+    let centreLine = this.state.rinkDimensions.centreLine;
+    let centreLineWidth = this.state.rinkDimensions.centreLineWidth;
+
+    let lineWidth = this.state.rinkDimensions.lineWidth;
+    // Blue lines are 75 feet from the end boards which makes 32.5 % and 67.5 % of rink width
+    let leftBlueLine = this.state.rinkDimensions.leftBlueLine;
+    let rightBlueLine = this.state.rinkDimensions.rightBlueLine;
+    // faceoff circle is 30 feet in diameter, meaning 15 by radius, which means 7,5 % of rink width
+    let faceoffCircleRadius = this.state.rinkDimensions.faceoffCircleRadius;
+    // faceoff spot is 1 foot in diameter, meaning 0,5 foot in radius, which means 0,25 % of rink width
+    let centerFaceoffSpotRadius = this.state.rinkDimensions.centerFaceoffSpotRadius;
+    // for all other faceoff spots the radius is 2 feet
+    let faceoffSpotRadius = this.state.rinkDimensions.faceoffSpotRadius;
+    
+    // According usahockeyrulebook https://www.usahockeyrulebook.com/page/show/1082185-rule-104-face-off-spots-and-face-off-circles
+    // section d
+    // twenty feet (20') from the back of the goal lines, meaning leftGoalLine + (20 / 200=) 10 % 
+    let awayTeamDefendingFaceoffSpotHorizontalPosition = this.state.rinkDimensions.awayTeamDefendingFaceoffSpotHorizontalPosition;
+    // twenty feet (20') from the back of the goal lines, meaning rightGoalLine - (20 / 200=) 10 % 
+    let homeTeamDefendingFaceoffSpotHorizontalPosition = this.state.rinkDimensions.homeTeamDefendingFaceoffSpotHorizontalPosition;
+
+    // section c
+    // five feet (5') from the neutral zone side of the blue lines, meaning left blue line position + (5/200 =) 2,5 % 
+    let awayTeamNeutralFaceoffSpotHorizontalPosition = this.state.rinkDimensions.awayTeamNeutralFaceoffSpotHorizontalPosition;
+    // five feet (5') from the neutral zone side of the blue lines, right blue line position - (5/200 =) 2,5 %
+    let homeTeamNeutralFaceoffSpotHorizontalPosition = this.state.rinkDimensions.homeTeamNeutralFaceoffSpotHorizontalPosition;
+
+    // all top faceoff spots are in the same vertical position, which is 21,25 feet from top (rink height of 85 feet divided by 4)
+    let topFaceoffSpotsVerticalPositions = this.state.rinkDimensions.topFaceoffSpotsVerticalPositions;
+    
+    // all top faceoff spots are in the same vertical position, which is 21,25 feet from bottom (rink height of 85 feet divided by 4 multiplied with 3)
+    let bottomFaceoffSpotsVerticalPositions = this.state.rinkDimensions.bottomFaceoffSpotsVerticalPositions;
+
+    // goal crease is 8 feet in diameter, meaning 4 in radius 4 / 200 = 2 % 
+    let goalCreaseRadius = this.state.rinkDimensions.goalCreaseRadius;
+    let goalCreaseVerticalPosition = this.state.rinkDimensions.goalCreaseVerticalPosition;
+
+    // According to https://en.wikipedia.org/wiki/Goal_(ice_hockey)
+    // goal is 3,3 feet deep, which translates to (3,3 / 200 =) 1,65 %
+    let goalDeepness = this.state.rinkDimensions.goalDeepness;
+    
+    // goal is 6 feet wide, so half goal width is 6 feet, which translates to (6 / 200 =) 3 %
+    let goalWidth = this.state.rinkDimensions.goalWidth;
+
+
+    
+
     this.state.context.clearRect(0, 0, rinkWidth, rinkHeight);
     
     // Draw a left red goal line
@@ -253,20 +330,20 @@ export default class App extends React.Component {
     
     if(this.state.jsonData && this.state.jsonData.liveData) {
       console.log("jsondata livedata filled");
-      var allPlays = this.state.jsonData.liveData.plays.allPlays;
+      let allPlays = this.state.jsonData.liveData.plays.allPlays;
       
       if( ! this.state.displayAwayTeam && ! this.state.displayHomeTeam){
         // no need to render any plays
         return;
       }
-      var homeTeamAbbreviation = this.state.jsonData.gameData.teams.home.triCode;
-      var awayTeamAbbreviation = this.state.jsonData.gameData.teams.away.triCode;
+      let homeTeamAbbreviation = this.state.jsonData.gameData.teams.home.triCode;
+      let awayTeamAbbreviation = this.state.jsonData.gameData.teams.away.triCode;
 
-      var i;
-      var localSelectedPlay = null;
+      let i;
+      let localSelectedPlay = null;
       this.state.gameEventTypes.forEach(element => {
         for (i = 0; i < allPlays.length; i++) {
-          var play = allPlays[i];
+          let play = allPlays[i];
 
           if ( ! play.coordinates || ! play.team){
             // no need to render plays where there are no team or coordinates
@@ -305,18 +382,18 @@ export default class App extends React.Component {
             //console.log(play.coordinates);
   
             // NHL shotmap has negative values but we have only positive.
-            var translatedCoordinateX = (play.coordinates.x + 99) * horizontalTranslation;
+            let translatedCoordinateX = (play.coordinates.x + 99) * horizontalTranslation;
   
             // With NHL shotmap negative y is south side  of the rink, positive is north side. 
             // For us y 0 is up north and from there we go more south the more positive the y value is
             // that's why we need to inverse the y axis by subtracting the coordinates from rinkHeight
-            var translatedCoordinateY = rinkHeight - ((play.coordinates.y + 41) * verticalTranslation);
+            let translatedCoordinateY = rinkHeight - ((play.coordinates.y + 41) * verticalTranslation);
   
             //console.log("translated coordinate x "+translatedCoordinateX+" translated y "+translatedCoordinateY);
             let circle = this.drawCircle(translatedCoordinateX, translatedCoordinateY, element.color);
             if (this.state.mouseX && this.state.mouseY && this.state.context.isPointInPath(circle, this.state.mouseX, this.state.mouseY)) {
               localSelectedPlay = play;
-              let circle = this.drawCircle(translatedCoordinateX, translatedCoordinateY, element.color, 20);
+              this.drawCircle(translatedCoordinateX, translatedCoordinateY, element.color, 20);
               
               this.state.context.fillStyle = "#000000";
               this.state.context.font = "20px Georgia";
@@ -380,6 +457,15 @@ export default class App extends React.Component {
 
   componentWillUnmount() {
     this.isMounted = false;
+    window.removeEventListener('resize', this.updateDimensions);
+  }
+
+  updateDimensions() {
+    this.setState(
+      { 
+        rinkDimensions: getRinkDimensions(window),
+      }
+    );
   }
 
   handleGameUrlChange(event) {
@@ -398,12 +484,12 @@ export default class App extends React.Component {
         return;
       }
       console.log(parsedUrl.hash); 
-      var result = parsedUrl.hash.replace("#", "").split(',').reduce(function (result, item) {
-          var parts = item.split('=');
+      let result = parsedUrl.hash.replace("#", "").split(',').reduce(function (result, item) {
+          let parts = item.split('=');
           result[parts[0]] = parts[1];
           return result;
       }, {});
-      var game = result["game"];
+      let game = result["game"];
       this.setState(
         {
           jsonData: null, 
@@ -469,12 +555,47 @@ export default class App extends React.Component {
     this.setState({showEventsOnOneSide: event.target.checked});
   }
   
+  handleTabChange(event, newValue){
+    this.setState({
+      tabIndex: newValue,
+    });
+  }
+
   render() {
     return (
       <div
         style={{
           textAlign: 'center',
         }}>
+      
+      <AppBar position="static">
+        <Tabs 
+          value={this.state.tabIndex} 
+          onChange={this.handleTabChange}>
+          <Tab label="Games with datepicker" />
+          <Tab label="Games with URL" />
+        </Tabs>
+      </AppBar>
+      <div hidden={this.state.tabIndex != 0}>
+      <p>{format(this.props.startDate, "'Today is a' d.M.yyyy")}</p>
+        <MuiPickersUtilsProvider utils={DateFnsUtils}>
+          <DatePicker
+            id="gamesStartDatePicker"
+            label="Start date"
+            autoOk={true}
+            value={this.props.startDate}
+            onChange={(date) => this.props.selectStartDateAction(date)} />
+
+          <DatePicker 
+            id="gamesEndDatePicker"
+            label="End date"
+            autoOk={true}
+            value={this.props.endDate}
+            onChange={(date) => this.props.selectEndDateAction(date)} /> 
+        </MuiPickersUtilsProvider>
+
+      </div>
+      <div hidden={this.state.tabIndex != 1}>
         <form onSubmit={this.handleSubmit} style={{width: "100%"}}>
           <label style={{width: "100%"}}>
             <p>NHL game URL:</p>
@@ -483,6 +604,10 @@ export default class App extends React.Component {
           {this.state.nhlGameUrlError && <p style={{color:"red"}}>{this.state.nhlGameUrlError}</p>}
           <p>Game:  {this.state.game} </p>
         </form>
+
+      </div>
+
+
 
         <p>
           {this.state.awayTeam && <Checkbox value="awayTeamCheckBox" defaultChecked={this.state.displayAwayTeam} onChange={this.displayAwayTeamHandler} />}
@@ -496,10 +621,10 @@ export default class App extends React.Component {
           multiple
           filterSelectedOptions
           id="gameEventTypesAutoComplete"
-          options={gameEventTypeOptions} 
+          options={GAME_EVENT_TYPE_OPTIONS} 
           onChange={this.handleGameEventTypeChange} 
           getOptionLabel={(option) => option.label}
-          defaultValue={[gameEventTypeOptions[DEFAULT_GAME_EVENT_INDEX]]}
+          defaultValue={[GAME_EVENT_TYPE_OPTIONS[DEFAULT_GAME_EVENT_INDEX]]}
           renderInput={(params) => (
             <TextField
               {...params}
@@ -530,50 +655,24 @@ export default class App extends React.Component {
 
         <br/>
 
-        <Box style={{backgroundColor: gameEventTypeOptions[0].color, width: "20px", height: "20px", marginLeft: "20px", display: "inline-block"}} />
-        <span style={{paddingLeft: "25px"}}>{gameEventTypeOptions[0].label}</span>
+        <GameEventTypeLegend />
         
-        <Box style={{backgroundColor: gameEventTypeOptions[1].color, width: "20px", height: "20px", marginLeft: "20px", display: "inline-block"}} />
-        <span style={{paddingLeft: "25px"}}>{gameEventTypeOptions[1].label}</span>
-
-        <Box style={{backgroundColor: gameEventTypeOptions[2].color, width: "20px", height: "20px", marginLeft: "20px", display: "inline-block"}} />
-        <span style={{paddingLeft: "25px"}}>{gameEventTypeOptions[2].label}</span>
-
-        <Box style={{backgroundColor: gameEventTypeOptions[3].color, width: "20px", height: "20px", marginLeft: "20px", display: "inline-block"}} />
-        <span style={{paddingLeft: "25px"}}>{gameEventTypeOptions[3].label}</span>
-
-        <Box style={{backgroundColor: gameEventTypeOptions[4].color, width: "20px", height: "20px", marginLeft: "20px", display: "inline-block"}} />
-        <span style={{paddingLeft: "25px"}}>{gameEventTypeOptions[4].label}</span>
-
-        <Box style={{backgroundColor: gameEventTypeOptions[5].color, width: "20px", height: "20px", marginLeft: "20px", display: "inline-block"}} />
-        <span style={{paddingLeft: "25px"}}>{gameEventTypeOptions[5].label}</span>
-
-        <Box style={{backgroundColor: gameEventTypeOptions[6].color, width: "20px", height: "20px", marginLeft: "20px", display: "inline-block"}} />
-        <span style={{paddingLeft: "25px"}}>{gameEventTypeOptions[6].label}</span>
-
-        <Box style={{backgroundColor: gameEventTypeOptions[7].color, width: "20px", height: "20px", marginLeft: "20px", display: "inline-block"}} />
-        <span style={{paddingLeft: "25px"}}>{gameEventTypeOptions[7].label}</span>
-
-        <Box style={{backgroundColor: gameEventTypeOptions[8].color, width: "20px", height: "20px", marginLeft: "20px", display: "inline-block"}} />
-        <span style={{paddingLeft: "25px"}}>{gameEventTypeOptions[8].label}</span>
-
-
         <span style={{display: "block"}}/>
         <canvas
           id="canvas"
           ref={this.canvasRef}
-          width={rinkWidth}
-          height={rinkHeight}
+          width={this.state.rinkDimensions.rinkWidth}
+          height={this.state.rinkDimensions.rinkHeight}
           style={{
             border: '2px solid #000',
-            borderRadius: borderRadiusStyle,
+            borderRadius: this.state.rinkDimensions.borderRadiusStyle,
             marginTop: 10,
           }}
         ></canvas>
         <MouseTooltip
           visible={this.selectedPlay}
           offsetX={15}
-          offsetY={10}
+          offsetY={10} 
         >
           {this.selectedPlay &&
           <div 
@@ -598,91 +697,14 @@ export default class App extends React.Component {
   }
 }
 
-    // According to Wikipedia https://en.wikipedia.org/wiki/Ice_hockey_rink#:~:text=Most%20North%20American%20rinks%20follow,m)%20from%20the%20end%20boards.
-    // ice hockey rink is by default 200 feet times 85 feet
-    // so let's set the width to 80 % of the window width and then multiply this with 42.5 % to get the height of the rink
-    const windowWidth = window.innerWidth;
-    const rinkWidth = windowWidth * 0.8;
-    const rinkHeight = rinkWidth * 0.425;
-    // corner radius is 28 feet which makes it 14 %
-    var borderRadiusStyle = rinkWidth * 0.14;
-    borderRadiusStyle = borderRadiusStyle + "px";
-    var xOmegaPoint = rinkWidth / 2;
-    var yOmegaPoint = rinkHeight / 2;
-    // the NHL API gives x values from -99 to +99. That gives 199 different values when you count 0
-    var horizontalTranslation = rinkWidth / 199;
-    // the NHL API gives y values from -41 to +41. That gives 83 different values when you count 0
-    var verticalTranslation = rinkHeight / 83;
-    // goal lines are 11 feet from the end boards which means 5.5 % and 94.5 % of rink width
-    var leftGoalLine = rinkWidth * 0.055;
-    var rightGoalLine = rinkWidth * 0.945;
-    var centreLine = rinkWidth * 0.499;
-    var centreLineWidth = rinkWidth * 0.0021;
 
-    var lineWidth = rinkWidth * 0.0021;
-    // Blue lines are 75 feet from the end boards which makes 32.5 % and 67.5 % of rink width
-    var leftBlueLine = rinkWidth * 0.325;
-    var rightBlueLine = rinkWidth * 0.675;
-    // default game event is "shot"
-    const DEFAULT_GAME_EVENT_INDEX = 3;
-    // faceoff circle is 30 feet in diameter, meaning 15 by radius, which means 7,5 % of rink width
-    var faceoffCircleRadius = rinkWidth * 0.075;
-    // faceoff spot is 1 foot in diameter, meaning 0,5 foot in radius, which means 0,25 % of rink width
-    var centerFaceoffSpotRadius = rinkWidth * 0.0025;
-    // for all other faceoff spots the radius is 2 feet
-    var faceoffSpotRadius = rinkWidth * 0.005;
-    
-    // According usahockeyrulebook https://www.usahockeyrulebook.com/page/show/1082185-rule-104-face-off-spots-and-face-off-circles
-    // section d
-    // twenty feet (20') from the back of the goal lines, meaning leftGoalLine + (20 / 200=) 10 % 
-    var awayTeamDefendingFaceoffSpotHorizontalPosition = leftGoalLine + (rinkWidth * 0.1);
-    // twenty feet (20') from the back of the goal lines, meaning rightGoalLine - (20 / 200=) 10 % 
-    var homeTeamDefendingFaceoffSpotHorizontalPosition = rightGoalLine - (rinkWidth * 0.1);
+const mapStateToProps = state => ({
+  ...state
+});
+const mapDispatchToProps = dispatch => ({
+  selectStartDateAction: (date) => dispatch(selectStartDateAction(date)),
+  selectEndDateAction: (date) => dispatch(selectEndDateAction(date)),
+});
 
-    // section c
-    // five feet (5') from the neutral zone side of the blue lines, meaning left blue line position + (5/200 =) 2,5 % 
-    var awayTeamNeutralFaceoffSpotHorizontalPosition = leftBlueLine + (rinkWidth * 0.025);
-    // five feet (5') from the neutral zone side of the blue lines, right blue line position - (5/200 =) 2,5 %
-    var homeTeamNeutralFaceoffSpotHorizontalPosition = rightBlueLine - (rinkWidth * 0.025);
-
-    // all top faceoff spots are in the same vertical position, which is 21,25 feet from top (rink height of 85 feet divided by 4)
-    var topFaceoffSpotsVerticalPositions = rinkHeight / 4;
-    
-    // all top faceoff spots are in the same vertical position, which is 21,25 feet from bottom (rink height of 85 feet divided by 4 multiplied with 3)
-    var bottomFaceoffSpotsVerticalPositions = rinkHeight / 4 * 3;
-
-    // goal crease is 8 feet in diameter, meaning 4 in radius 4 / 200 = 2 % 
-    var goalCreaseRadius = rinkWidth * 0.02;
-    var goalCreaseVerticalPosition = rinkHeight / 2;
-
-    // According to https://en.wikipedia.org/wiki/Goal_(ice_hockey)
-    // goal is 3,3 feet deep, which translates to (3,3 / 200 =) 1,65 %
-    var goalDeepness = rinkWidth * 0.0165;
-    
-    // goal is 6 feet wide, so half goal width is 6 feet, which translates to (6 / 200 =) 3 %
-    var goalWidth = rinkWidth * 0.03;
-
-    var gameEventTypeOptions = [
-/*      { value: 'GAME_SCHEDULED', label: 'Game Scheduled' },
-      { value: 'PERIOD_READY', label: 'Period ready' },
-      { value: 'PERIOD_START', label: 'Period starts' },*/
-      { value: 'FACEOFF', label: 'Faceoffs', color: '#FF0000' },
-//      { value: 'STOP', label: 'Stops', color: '#000000' },
-      { value: 'HIT', label: 'Hits', color: '#D789D7' },
-      { value: 'BLOCKED_SHOT', label: 'Blocked shots', color: '#00FF00' },
-      { value: 'SHOT', label: 'Shots', color: '#000000' },
-      { value: 'TAKEAWAY', label: 'Takeaways', color: '#FF5200' },
-      { value: 'MISSED_SHOT', label: 'Missed shots', color: '#0000FF' },
-      { value: 'GOAL', label: 'Goals', color: '#d2e603' },
-      { value: 'GIVEAWAY', label: 'Giveaways', color: '#6F0000' },
-      { value: 'PENALTY', label: 'Penalties', color: '#F0A500' },
-/*      { value: 'PERIOD_END', label: 'Period ends' },
-      { value: 'PERIOD_OFFICIAL', label: 'Period officials' },
-      { value: 'GAME_END', label: 'Game end' },
-      { value: 'GAME_OFFICIAL', label: 'Game official' }*/
-    ]
-//export default Canvas
-ReactDOM.render(
-  <App />,
-  document.getElementById('root')
-);
+// connect this App.js to Redux
+export default connect(mapStateToProps, mapDispatchToProps)(App);

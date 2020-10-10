@@ -24,12 +24,14 @@ TODO list:
     - Fetch latest games: https://statsapi.web.nhl.com/api/v1/schedule?startDate=2020-09-27&endDate=2020-09-30&hydrate=team,linescore,broadcasts(all),tickets,game(content(media(epg)),seriesSummary),radioBroadcasts,metadata,seriesSummary(series)&site=en_nhlNORDIC&teamId=&gameType=&timecode=
     - Create a heat map
     - add aggregate data depending on player
-    - responsive design
+    - add tab bar
     - when one spot has multiple events (e.g. see faceoffs) then show the items as a list
     - add nhl coordinates and converted coordinates to datatip when URL has ?showCoordinates=true
     - add multigame possibility for playoff series
     - add multigame possibility for different games
     - add Google analytics
+    - remove extra date from GameEventTypeLegend component
+    - add info button for "Games with URL" that describes on how to find the URL
     - BUG: when event is down on the rink, the datatip goes off the browser screen
         - to repeat 
             - set this game: https://www.nhl.com/gamecenter/dal-vs-tbl/2020/09/26/2019030415#game=2019030415,game_state=final
@@ -40,6 +42,8 @@ TODO list:
             - set this game: https://www.nhl.com/gamecenter/dal-vs-tbl/2020/09/26/2019030415#game=2019030415,game_state=final
             - select "Goals" from the "Filter game events"
             - click Single rink side multiple times, it should not register second mouse click
+    - BUG: the faceoffs (and thus probably also the other events on the ice) seem little off the marks. Maybe something to do with the translations as the center faceoff is calculated from rink width and height / 2 and the events are translated coordinates?
+        - as a side note it seems that neutral area faceoffs near blue lines are off quite a bit. Reason for this is unclear. 
 
 
 $ npm install -g @aws-amplify/cli
