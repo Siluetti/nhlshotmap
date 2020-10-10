@@ -16,6 +16,7 @@ import AppBar from '@material-ui/core/AppBar';
 import GameEventTypeLegend from "./components/GameEventTypeLegend";
 import { GAME_EVENT_TYPE_OPTIONS, DEFAULT_GAME_EVENT_INDEX } from "./constants/gameEventTypeConstants";
 import { getRinkDimensions } from "./constants/rinkDimensions";
+import {  drawCircle, drawCircleWithBorder, drawArcWithBorder, drawRoundedRectangle} from "./components/Draw";
 
 
 // the canvas logic has been taken from here: https://medium.com/better-programming/add-an-html-canvas-into-your-react-app-176dab099a79
@@ -66,99 +67,6 @@ class App extends React.Component {
     this.displayEventsOnOneSideHandler = this.displayEventsOnOneSideHandler.bind(this);
     this.handleTabChange = this.handleTabChange.bind(this);
     this.updateDimensions = this.updateDimensions.bind(this);
-  }
-
-  drawCircle(x, y, color, radius = 5){
-    this.state.context.beginPath();
-    this.state.context.fillStyle = color;
-
-    var startAngle = 0; // Starting point on circle
-    var endAngle = 2 * Math.PI; // End point on circle
-    var anticlockwise = false; // clockwise or anticlockwise
-
-    const circle = new Path2D();
-    circle.arc(x, y, radius, startAngle, endAngle, anticlockwise);
-
-    this.state.context.fill(circle);
-    this.state.context.closePath();
-    return circle;
-  }
-
-  drawCircleWithBorder(x, y, color, radius = 5, borderColor = 'red', borderWidth = '2'){
-    this.state.context.beginPath();
-    this.state.context.fillStyle = color;
-
-    var startAngle = 0; // Starting point on circle
-    var endAngle = 2 * Math.PI; // End point on circle
-    var anticlockwise = false; // clockwise or anticlockwise
-
-    const circle = new Path2D();
-    circle.arc(x, y, radius, startAngle, endAngle, anticlockwise);
-
-    this.state.context.fill(circle);
-    this.state.context.lineWidth = borderWidth;
-    this.state.context.strokeStyle = borderColor;
-    this.state.context.stroke(circle);
-    this.state.context.closePath();
-    return circle;
-  }
-
-  drawArcWithBorder(x, y, color, radius = 5, borderColor = 'red', borderWidth = '2', startAngle = 0, endAngle = Math.PI){
-    this.state.context.beginPath();
-    this.state.context.fillStyle = color;
-
-    var anticlockwise = false; // clockwise or anticlockwise
-
-    const arc = new Path2D();
-    arc.arc(x, y, radius, startAngle, endAngle, anticlockwise);
-
-    this.state.context.fill(arc);
-    this.state.context.lineWidth = borderWidth;
-    this.state.context.strokeStyle = borderColor;
-    this.state.context.stroke(arc);
-    this.state.context.closePath();
-    return arc;
-  }
-
-  drawRoundedRectangle( x = this.state.rinkDimensions.leftGoalLine - (this.state.rinkDimensions.rinkWidth * 0.0165), 
-                        y = this.state.rinkDimensions.goalCreaseVerticalPosition - (this.state.rinkDimensions.rinkWidth * 0.015), 
-                        width = (this.state.rinkDimensions.rinkWidth * 0.0165), 
-                        height = (this.state.rinkDimensions.rinkWidth * 0.03), 
-                        fillColor = '#FFFFFF',
-                        topLeftRadius = 5, 
-                        topRightRadius = 0, 
-                        bottomLeftRadius = 5, 
-                        bottomRightRadius = 0, 
-                        borderWidth = 2, 
-                        borderColor = '#FF0000'){
-    this.state.context.fillStyle = fillColor;
-    this.state.context.beginPath();
-    this.state.context.moveTo(x+width, y+height);
-    this.state.context.arcTo( x, 
-                              y + height, 
-                              x,
-                              y, 
-                              bottomLeftRadius);
-    this.state.context.arcTo( x,
-                              y,  
-                              x+width,
-                              y, 
-                              topLeftRadius);
-    this.state.context.arcTo( x+width,
-                              y, 
-                              x+width,
-                              y+height, 
-                              topRightRadius);
-    this.state.context.arcTo( x+width,
-                              y+height, 
-                              x,
-                              y+height, 
-                              bottomRightRadius);
-    this.state.context.fill();
-    this.state.context.lineWidth = borderWidth;
-    this.state.context.strokeStyle = borderColor;
-    this.state.context.stroke();
-    this.state.context.closePath();
   }
 
   componentDidMount(){
@@ -259,55 +167,55 @@ class App extends React.Component {
     this.state.context.fillRect(leftBlueLine, 0, lineWidth, rinkHeight);
 
     // Draw a red faceoff circle
-    this.drawCircleWithBorder(xOmegaPoint, yOmegaPoint, '#FFFFFF', faceoffCircleRadius);
+    drawCircleWithBorder(this.state.context, xOmegaPoint, yOmegaPoint, '#FFFFFF', faceoffCircleRadius);
         
     // Draw a red centre line
     this.state.context.fillStyle = '#ff0000';
     this.state.context.fillRect(centreLine, 0, centreLineWidth, rinkHeight);
     
     // draw center blue faceoff spot 
-    this.drawCircle(xOmegaPoint, yOmegaPoint, '#0000FF', centerFaceoffSpotRadius);
+    drawCircle(this.state.context, xOmegaPoint, yOmegaPoint, '#0000FF', centerFaceoffSpotRadius);
 
     // Draw away team top red faceoff circle
-    this.drawCircleWithBorder(awayTeamDefendingFaceoffSpotHorizontalPosition, topFaceoffSpotsVerticalPositions, '#FFFFFF', faceoffCircleRadius);
+    drawCircleWithBorder(this.state.context, awayTeamDefendingFaceoffSpotHorizontalPosition, topFaceoffSpotsVerticalPositions, '#FFFFFF', faceoffCircleRadius);
     // draw away team red top defending side faceoff spot 
-    this.drawCircle(awayTeamDefendingFaceoffSpotHorizontalPosition, topFaceoffSpotsVerticalPositions, '#FF0000', faceoffSpotRadius);
+    drawCircle(this.state.context, awayTeamDefendingFaceoffSpotHorizontalPosition, topFaceoffSpotsVerticalPositions, '#FF0000', faceoffSpotRadius);
 
     // Draw away team bottom red faceoff circle
-    this.drawCircleWithBorder(awayTeamDefendingFaceoffSpotHorizontalPosition, bottomFaceoffSpotsVerticalPositions, '#FFFFFF', faceoffCircleRadius);
+    drawCircleWithBorder(this.state.context, awayTeamDefendingFaceoffSpotHorizontalPosition, bottomFaceoffSpotsVerticalPositions, '#FFFFFF', faceoffCircleRadius);
     // draw away team red bottom defending side faceoff spot 
-    this.drawCircle(awayTeamDefendingFaceoffSpotHorizontalPosition, bottomFaceoffSpotsVerticalPositions, '#FF0000', faceoffSpotRadius);
+    drawCircle(this.state.context, awayTeamDefendingFaceoffSpotHorizontalPosition, bottomFaceoffSpotsVerticalPositions, '#FF0000', faceoffSpotRadius);
 
     // draw away team red top neutral side faceoff spot 
-    this.drawCircle(awayTeamNeutralFaceoffSpotHorizontalPosition, topFaceoffSpotsVerticalPositions, '#FF0000', faceoffSpotRadius);
+    drawCircle(this.state.context, awayTeamNeutralFaceoffSpotHorizontalPosition, topFaceoffSpotsVerticalPositions, '#FF0000', faceoffSpotRadius);
 
     // draw away team red bottom neutral side faceoff spot 
-    this.drawCircle(awayTeamNeutralFaceoffSpotHorizontalPosition, bottomFaceoffSpotsVerticalPositions, '#FF0000', faceoffSpotRadius);
+    drawCircle(this.state.context, awayTeamNeutralFaceoffSpotHorizontalPosition, bottomFaceoffSpotsVerticalPositions, '#FF0000', faceoffSpotRadius);
     
     // Draw home team bottom red faceoff circle
-    this.drawCircleWithBorder(homeTeamDefendingFaceoffSpotHorizontalPosition, topFaceoffSpotsVerticalPositions, '#FFFFFF', faceoffCircleRadius);
+    drawCircleWithBorder(this.state.context, homeTeamDefendingFaceoffSpotHorizontalPosition, topFaceoffSpotsVerticalPositions, '#FFFFFF', faceoffCircleRadius);
     // draw home team red top defending side faceoff spot 
-    this.drawCircle(homeTeamDefendingFaceoffSpotHorizontalPosition, topFaceoffSpotsVerticalPositions, '#FF0000', faceoffSpotRadius);
+    drawCircle(this.state.context, homeTeamDefendingFaceoffSpotHorizontalPosition, topFaceoffSpotsVerticalPositions, '#FF0000', faceoffSpotRadius);
 
     // Draw home team bottom red faceoff circle
-    this.drawCircleWithBorder(homeTeamDefendingFaceoffSpotHorizontalPosition, bottomFaceoffSpotsVerticalPositions, '#FFFFFF', faceoffCircleRadius);
+    drawCircleWithBorder(this.state.context, homeTeamDefendingFaceoffSpotHorizontalPosition, bottomFaceoffSpotsVerticalPositions, '#FFFFFF', faceoffCircleRadius);
     // draw home team red bottom defending side faceoff spot 
-    this.drawCircle(homeTeamDefendingFaceoffSpotHorizontalPosition, bottomFaceoffSpotsVerticalPositions, '#FF0000', faceoffSpotRadius);
+    drawCircle(this.state.context, homeTeamDefendingFaceoffSpotHorizontalPosition, bottomFaceoffSpotsVerticalPositions, '#FF0000', faceoffSpotRadius);
 
     // draw home team red top neutral side faceoff spot 
-    this.drawCircle(homeTeamNeutralFaceoffSpotHorizontalPosition, topFaceoffSpotsVerticalPositions, '#FF0000', faceoffSpotRadius);
+    drawCircle(this.state.context, homeTeamNeutralFaceoffSpotHorizontalPosition, topFaceoffSpotsVerticalPositions, '#FF0000', faceoffSpotRadius);
 
     // draw home team red bottom neutral side faceoff spot 
-    this.drawCircle(homeTeamNeutralFaceoffSpotHorizontalPosition, bottomFaceoffSpotsVerticalPositions, '#FF0000', faceoffSpotRadius);
+    drawCircle(this.state.context, homeTeamNeutralFaceoffSpotHorizontalPosition, bottomFaceoffSpotsVerticalPositions, '#FF0000', faceoffSpotRadius);
     
     // draw away team goal crease 
-    this.drawArcWithBorder(leftGoalLine+lineWidth, goalCreaseVerticalPosition, '#67C6DD', goalCreaseRadius, '#FF0000', 2, 0 - Math.PI / 2, Math.PI / 2);
+    drawArcWithBorder(this.state.context, leftGoalLine+lineWidth, goalCreaseVerticalPosition, '#67C6DD', goalCreaseRadius, '#FF0000', 2, 0 - Math.PI / 2, Math.PI / 2);
 
     // draw home team goal crease 
-    this.drawArcWithBorder(rightGoalLine, goalCreaseVerticalPosition, '#67C6DD', goalCreaseRadius, '#FF0000', 2, Math.PI / 2, Math.PI * 1.5);
+    drawArcWithBorder(this.state.context, rightGoalLine, goalCreaseVerticalPosition, '#67C6DD', goalCreaseRadius, '#FF0000', 2, Math.PI / 2, Math.PI * 1.5);
 
     // draw away team goal
-    this.drawRoundedRectangle(leftGoalLine - goalDeepness + lineWidth/2, 
+    drawRoundedRectangle(this.state.context, leftGoalLine - goalDeepness + lineWidth/2, 
                               goalCreaseVerticalPosition - (goalWidth/2), 
                               goalDeepness, 
                               goalWidth, 
@@ -316,7 +224,7 @@ class App extends React.Component {
                               );
     
     // draw home team goal
-    this.drawRoundedRectangle(rightGoalLine+lineWidth/2, 
+    drawRoundedRectangle(this.state.context, rightGoalLine+lineWidth/2, 
                               goalCreaseVerticalPosition - (goalWidth/2), 
                               goalDeepness, 
                               goalWidth, 
@@ -386,10 +294,10 @@ class App extends React.Component {
             let translatedCoordinateY = rinkHeight - ((play.coordinates.y + 41) * verticalTranslation);
   
             //console.log("translated coordinate x "+translatedCoordinateX+" translated y "+translatedCoordinateY);
-            let circle = this.drawCircle(translatedCoordinateX, translatedCoordinateY, element.color);
+            let circle = drawCircle(this.state.context, translatedCoordinateX, translatedCoordinateY, element.color);
             if (this.state.mouseX && this.state.mouseY && this.state.context.isPointInPath(circle, this.state.mouseX, this.state.mouseY)) {
               localSelectedPlay = play;
-              this.drawCircle(translatedCoordinateX, translatedCoordinateY, element.color, 20);
+              drawCircle(this.state.context, translatedCoordinateX, translatedCoordinateY, element.color, 20);
               
               this.state.context.fillStyle = "#000000";
               this.state.context.font = "20px Georgia";
