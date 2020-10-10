@@ -3,7 +3,6 @@ import './App.css';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import TextField from '@material-ui/core/TextField';
 import Checkbox from '@material-ui/core/Checkbox';
-import Tooltip from '@material-ui/core/Tooltip';
 import MouseTooltip from 'react-sticky-mouse-tooltip';
 import { connect } from "react-redux";
 import {selectStartDateAction, selectEndDateAction} from "./redux/actions/selectDateAction";
@@ -18,13 +17,16 @@ import { GAME_EVENT_TYPE_OPTIONS, DEFAULT_GAME_EVENT_INDEX } from "./constants/g
 import { getRinkDimensions } from "./constants/rinkDimensions";
 import {  drawCircle, drawCircleWithBorder, drawArcWithBorder, drawRoundedRectangle} from "./components/Draw";
 import {  drawRink } from "./components/DrawRink";
-
+import VisiblePeriods from "./components/VisiblePeriods";
+import SingleRinkSide from "./components/SingleRinkSide";
+import Button from '@material-ui/core/Button';
 
 // the canvas logic has been taken from here: https://medium.com/better-programming/add-an-html-canvas-into-your-react-app-176dab099a79
 class App extends React.Component {
   // _isMounted is here only for solving an issue with data fetching:
   // https://stackoverflow.com/questions/53949393/cant-perform-a-react-state-update-on-an-unmounted-component
   _isMounted = false;
+  // NOTE: inversedEvents is not in state because we do not want that changing it triggers new rendering
   inversedEvents = true;
   selectedPlay = null;
 
@@ -44,7 +46,7 @@ class App extends React.Component {
     this.state = {
       context: null,
       jsonData: null,
-      nhlGameUrl: null,
+      gamesJsonData: null,
       game: null,
       awayTeam: null,
       homeTeam: null,
@@ -68,11 +70,12 @@ class App extends React.Component {
     this.displayEventsOnOneSideHandler = this.displayEventsOnOneSideHandler.bind(this);
     this.handleTabChange = this.handleTabChange.bind(this);
     this.updateDimensions = this.updateDimensions.bind(this);
+    this.getLatestGamesFromNhlApi = this.getLatestGamesFromNhlApi.bind(this);
   }
 
   componentDidMount(){
     this.isMounted = true;
-
+    this.getLatestGamesFromNhlApi();
     window.addEventListener('resize', this.updateDimensions);
     if (this.canvasRef.current) {
       const renderCtx = this.canvasRef.current.getContext('2d');
@@ -85,10 +88,10 @@ class App extends React.Component {
   }
 
   componentDidUpdate(){
-    
     if( ! this.state.context){
       return;
     }
+
     drawRink(this.state);
     let rinkHeight = this.state.rinkDimensions.rinkHeight;
     // the NHL API gives x values from -99 to +99. That gives 199 different values when you count 0
@@ -183,18 +186,7 @@ class App extends React.Component {
       }
 
 
-    } else {
-      console.log("checking nhl game url");
-      if( ! this.state.game){
-        return;
-      }
-      console.log("nhl game url found");
-  
-      this.getDataFromNhlApi();
-
-      console.log("jsondata livedata not filled, calling API");
-    }
-
+    } 
   }
 
   onMouseMove(event){
@@ -206,21 +198,57 @@ class App extends React.Component {
     );
   }
 
-  getDataFromNhlApi(){
-    fetch("https://statsapi.web.nhl.com/api/v1/game/"+this.state.game+"/feed/live?site=en_nhl")
-        .then(response => response.json())
-        .then(jsonData => {
-            console.log("jsondata filled with game "+this.state.game);
-            this.inversedEvents = false;
-            this.setState(
-              {
-                showPeriods: new Array(jsonData.liveData.linescore.periods.length).fill(true),
-                jsonData: jsonData,
-                awayTeam: jsonData.gameData.teams.away,
-                homeTeam: jsonData.gameData.teams.home,
-              }
-            );
-        } );
+  getSingleGameDataFromNhlApi(game){
+    fetch("https://statsapi.web.nhl.com/api/v1/game/"+game+"/feed/live?site=en_nhl")
+      .then(response => response.json())
+      .then(jsonData => {
+          console.log("jsondata filled with game "+game);
+          this.inversedEvents = false;
+          this.setState(
+            {
+              showPeriods: new Array(jsonData.liveData.linescore.periods.length).fill(true),
+              jsonData: jsonData,
+              awayTeam: jsonData.gameData.teams.away,
+              homeTeam: jsonData.gameData.teams.home,
+            }
+          );
+      } );
+  }
+
+  getLatestGamesFromNhlApi() {
+    this.setState(
+      {
+        jsonData: null, 
+        game: null,
+        nhlGameUrlError: null,
+        awayTeam: null,
+        homeTeam: null,
+      }
+    );  
+    if ( ! (this.props.startDate) || ! (this.props.endDate)) {
+      console.log("start or enddate null or undefined");
+      return;
+    }
+
+    let formattedStartDate = format(this.props.startDate, 'yyyy-MM-dd');
+    let formattedEndDate = format(this.props.endDate, 'yyyy-MM-dd');
+    
+    console.log(formattedStartDate);
+    console.log(formattedEndDate);
+
+    fetch("https://statsapi.web.nhl.com/api/v1/schedule?startDate="+formattedStartDate+"&endDate="+formattedEndDate+"&hydrate=team,linescore,broadcasts(all),tickets,game(content(media(epg)),seriesSummary),radioBroadcasts,metadata,seriesSummary(series)&site=en_nhlNORDIC&teamId=&gameType=&timecode=")
+      .then(response => response.json())
+      .then(jsonData => {
+          this.inversedEvents = false;
+          this.setState(
+            {
+              showPeriods: null,
+              gamesJsonData: jsonData,
+              awayTeam: null,
+              homeTeam: null,
+            }
+          );
+      } );
   }
 
   componentWillUnmount() {
@@ -244,9 +272,10 @@ class App extends React.Component {
         this.setState(
           {
             jsonData: null, 
-            game: game,
-            nhlGameUrl: event.target.value,
+            game: null,
             nhlGameUrlError: "Malformed URL",
+            awayTeam: null,
+            homeTeam: null,
           }
         );
         return;
@@ -258,20 +287,12 @@ class App extends React.Component {
           return result;
       }, {});
       let game = result["game"];
-      this.setState(
-        {
-          jsonData: null, 
-          game: game,
-          nhlGameUrl: event.target.value,
-          nhlGameUrlError: null,
-        }
-      );  
+      this.getSingleGameDataFromNhlApi(game);
     } else {
       this.setState(
         {
           jsonData: null, 
           game: null,
-          nhlGameUrl: null,
           nhlGameUrlError: null,
           awayTeam: null,
           homeTeam: null,
@@ -345,7 +366,7 @@ class App extends React.Component {
         </Tabs>
       </AppBar>
       <div hidden={this.state.tabIndex != 0}>
-      <p>{format(this.props.startDate, "'Today is a' d.M.yyyy")}</p>
+        <p>{format(this.props.startDate, "'Today is a' d.M.yyyy")}</p>
         <MuiPickersUtilsProvider utils={DateFnsUtils}>
           <DatePicker
             id="gamesStartDatePicker"
@@ -361,12 +382,25 @@ class App extends React.Component {
             value={this.props.endDate}
             onChange={(date) => this.props.selectEndDateAction(date)} /> 
         </MuiPickersUtilsProvider>
+        <Button variant="contained" onClick={this.getLatestGamesFromNhlApi}>Fetch games</Button>
+
+        <div><p>Games:</p>
+        {this.state.gamesJsonData &&
+          Array.apply(null, { length: this.state.gamesJsonData.dates.length}).map((e, i) => (
+            Array.apply(null, { length: this.state.gamesJsonData.dates[i].games.length}).map((e, j) => (
+              <span className="gameHandlerSpan" key={this.state.gamesJsonData.dates[i].games[j].gamePk}>
+              <Button variant="contained" value={this.state.gamesJsonData.dates[i].games[j].gamePk} onClick={() => {this.getSingleGameDataFromNhlApi(this.state.gamesJsonData.dates[i].games[j].gamePk)}}>{this.state.gamesJsonData.dates[i].games[j].gameDate} {this.state.gamesJsonData.dates[i].games[j].teams.away.team.name} @ {this.state.gamesJsonData.dates[i].games[j].teams.home.team.name}</Button>
+            </span>
+            ))
+          ))
+        }</div>
+
 
       </div>
       <div hidden={this.state.tabIndex != 1}>
         <form onSubmit={this.handleSubmit} style={{width: "100%"}}>
           <label style={{width: "100%"}}>
-            <p>NHL game URL:</p>
+            <p>NHL gamecenter URL:</p>
             <input type="text" onChange={this.handleGameUrlChange} style={{width: "60%"}} />
           </label>
           {this.state.nhlGameUrlError && <p style={{color:"red"}}>{this.state.nhlGameUrlError}</p>}
@@ -403,25 +437,10 @@ class App extends React.Component {
           )}
         />
         
-        <p>Show periods:</p>
         {this.state.jsonData &&
-          Array.apply(null, { length: this.state.jsonData.liveData.linescore.periods.length}).map((e, i) => (
-            <span className="periodHandlerSpan" key={i}>
-              <Checkbox defaultChecked={true} value={i} onChange={this.displayPeriodHandler} />
-                {this.state.jsonData.liveData.linescore.periods[i].ordinalNum}
-            </span>
-          ))
-        }
-
-        <br/>
-        <span>Single rink side:</span>
-        {this.state.jsonData &&
-          <Tooltip title="If selected, show events on one side of the rink for each team (away team goal left, home team goal right). If unselected, show events like they happened in the game (switching rink sides apply).">
-            <Checkbox defaultChecked={true} value="showEventsOnOneSideOfTheRink" onChange={this.displayEventsOnOneSideHandler} />
-          </Tooltip>
-        }
-
-        <br/>
+        <VisiblePeriods jsonData={this.state.jsonData} displayPeriodHandler={this.displayPeriodHandler} /> }
+        
+        <SingleRinkSide jsonData={this.state.jsonData} displayEventsOnOneSideHandler={this.displayEventsOnOneSideHandler} />
 
         <GameEventTypeLegend />
         

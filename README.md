@@ -21,10 +21,10 @@ https://statsapi.web.nhl.com/api/v1/schedule?startDate=2020-09-19&endDate=2020-0
 
 
 TODO list:
-    - Fetch latest games: https://statsapi.web.nhl.com/api/v1/schedule?startDate=2020-09-27&endDate=2020-09-30&hydrate=team,linescore,broadcasts(all),tickets,game(content(media(epg)),seriesSummary),radioBroadcasts,metadata,seriesSummary(series)&site=en_nhlNORDIC&teamId=&gameType=&timecode=
     - Create a heat map
+    - beautify buttons in "Games with datepicker"
     - add aggregate data depending on player
-    - add tab bar
+    - add tab bar for multi game series, multi game heat map and single player selection
     - when one spot has multiple events (e.g. see faceoffs) then show the items as a list
     - add nhl coordinates and converted coordinates to datatip when URL has ?showCoordinates=true
     - add multigame possibility for playoff series
