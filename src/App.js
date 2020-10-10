@@ -17,6 +17,7 @@ import GameEventTypeLegend from "./components/GameEventTypeLegend";
 import { GAME_EVENT_TYPE_OPTIONS, DEFAULT_GAME_EVENT_INDEX } from "./constants/gameEventTypeConstants";
 import { getRinkDimensions } from "./constants/rinkDimensions";
 import {  drawCircle, drawCircleWithBorder, drawArcWithBorder, drawRoundedRectangle} from "./components/Draw";
+import {  drawRink } from "./components/DrawRink";
 
 
 // the canvas logic has been taken from here: https://medium.com/better-programming/add-an-html-canvas-into-your-react-app-176dab099a79
@@ -88,149 +89,12 @@ class App extends React.Component {
     if( ! this.state.context){
       return;
     }
-    
-    let rinkWidth = this.state.rinkDimensions.rinkWidth;
+    drawRink(this.state);
     let rinkHeight = this.state.rinkDimensions.rinkHeight;
-    // corner radius is 28 feet which makes it 14 %
-    let xOmegaPoint = this.state.rinkDimensions.xOmegaPoint;
-    let yOmegaPoint = this.state.rinkDimensions.yOmegaPoint;
     // the NHL API gives x values from -99 to +99. That gives 199 different values when you count 0
     let horizontalTranslation = this.state.rinkDimensions.horizontalTranslation;
     // the NHL API gives y values from -41 to +41. That gives 83 different values when you count 0
     let verticalTranslation = this.state.rinkDimensions.verticalTranslation;
-    // goal lines are 11 feet from the end boards which means 5.5 % and 94.5 % of rink width
-    let leftGoalLine = this.state.rinkDimensions.leftGoalLine;
-    let rightGoalLine = this.state.rinkDimensions.rightGoalLine;
-    let centreLine = this.state.rinkDimensions.centreLine;
-    let centreLineWidth = this.state.rinkDimensions.centreLineWidth;
-
-    let lineWidth = this.state.rinkDimensions.lineWidth;
-    // Blue lines are 75 feet from the end boards which makes 32.5 % and 67.5 % of rink width
-    let leftBlueLine = this.state.rinkDimensions.leftBlueLine;
-    let rightBlueLine = this.state.rinkDimensions.rightBlueLine;
-    // faceoff circle is 30 feet in diameter, meaning 15 by radius, which means 7,5 % of rink width
-    let faceoffCircleRadius = this.state.rinkDimensions.faceoffCircleRadius;
-    // faceoff spot is 1 foot in diameter, meaning 0,5 foot in radius, which means 0,25 % of rink width
-    let centerFaceoffSpotRadius = this.state.rinkDimensions.centerFaceoffSpotRadius;
-    // for all other faceoff spots the radius is 2 feet
-    let faceoffSpotRadius = this.state.rinkDimensions.faceoffSpotRadius;
-    
-    // According usahockeyrulebook https://www.usahockeyrulebook.com/page/show/1082185-rule-104-face-off-spots-and-face-off-circles
-    // section d
-    // twenty feet (20') from the back of the goal lines, meaning leftGoalLine + (20 / 200=) 10 % 
-    let awayTeamDefendingFaceoffSpotHorizontalPosition = this.state.rinkDimensions.awayTeamDefendingFaceoffSpotHorizontalPosition;
-    // twenty feet (20') from the back of the goal lines, meaning rightGoalLine - (20 / 200=) 10 % 
-    let homeTeamDefendingFaceoffSpotHorizontalPosition = this.state.rinkDimensions.homeTeamDefendingFaceoffSpotHorizontalPosition;
-
-    // section c
-    // five feet (5') from the neutral zone side of the blue lines, meaning left blue line position + (5/200 =) 2,5 % 
-    let awayTeamNeutralFaceoffSpotHorizontalPosition = this.state.rinkDimensions.awayTeamNeutralFaceoffSpotHorizontalPosition;
-    // five feet (5') from the neutral zone side of the blue lines, right blue line position - (5/200 =) 2,5 %
-    let homeTeamNeutralFaceoffSpotHorizontalPosition = this.state.rinkDimensions.homeTeamNeutralFaceoffSpotHorizontalPosition;
-
-    // all top faceoff spots are in the same vertical position, which is 21,25 feet from top (rink height of 85 feet divided by 4)
-    let topFaceoffSpotsVerticalPositions = this.state.rinkDimensions.topFaceoffSpotsVerticalPositions;
-    
-    // all top faceoff spots are in the same vertical position, which is 21,25 feet from bottom (rink height of 85 feet divided by 4 multiplied with 3)
-    let bottomFaceoffSpotsVerticalPositions = this.state.rinkDimensions.bottomFaceoffSpotsVerticalPositions;
-
-    // goal crease is 8 feet in diameter, meaning 4 in radius 4 / 200 = 2 % 
-    let goalCreaseRadius = this.state.rinkDimensions.goalCreaseRadius;
-    let goalCreaseVerticalPosition = this.state.rinkDimensions.goalCreaseVerticalPosition;
-
-    // According to https://en.wikipedia.org/wiki/Goal_(ice_hockey)
-    // goal is 3,3 feet deep, which translates to (3,3 / 200 =) 1,65 %
-    let goalDeepness = this.state.rinkDimensions.goalDeepness;
-    
-    // goal is 6 feet wide, so half goal width is 6 feet, which translates to (6 / 200 =) 3 %
-    let goalWidth = this.state.rinkDimensions.goalWidth;
-
-
-    
-
-    this.state.context.clearRect(0, 0, rinkWidth, rinkHeight);
-    
-    // Draw a left red goal line
-    this.state.context.fillStyle = '#ff0000';
-    this.state.context.fillRect(leftGoalLine, 0, lineWidth, rinkHeight);
-
-    // Draw a right red goal line
-    this.state.context.fillStyle = '#ff0000';
-    this.state.context.fillRect(rightGoalLine, 0, lineWidth, rinkHeight);
-
-    // Draw left blue line
-    this.state.context.fillStyle = '#0000ff';
-    this.state.context.fillRect(rightBlueLine, 0, lineWidth, rinkHeight);
-    
-    // Draw right blue line
-    this.state.context.fillStyle = '#0000ff';
-    this.state.context.fillRect(leftBlueLine, 0, lineWidth, rinkHeight);
-
-    // Draw a red faceoff circle
-    drawCircleWithBorder(this.state.context, xOmegaPoint, yOmegaPoint, '#FFFFFF', faceoffCircleRadius);
-        
-    // Draw a red centre line
-    this.state.context.fillStyle = '#ff0000';
-    this.state.context.fillRect(centreLine, 0, centreLineWidth, rinkHeight);
-    
-    // draw center blue faceoff spot 
-    drawCircle(this.state.context, xOmegaPoint, yOmegaPoint, '#0000FF', centerFaceoffSpotRadius);
-
-    // Draw away team top red faceoff circle
-    drawCircleWithBorder(this.state.context, awayTeamDefendingFaceoffSpotHorizontalPosition, topFaceoffSpotsVerticalPositions, '#FFFFFF', faceoffCircleRadius);
-    // draw away team red top defending side faceoff spot 
-    drawCircle(this.state.context, awayTeamDefendingFaceoffSpotHorizontalPosition, topFaceoffSpotsVerticalPositions, '#FF0000', faceoffSpotRadius);
-
-    // Draw away team bottom red faceoff circle
-    drawCircleWithBorder(this.state.context, awayTeamDefendingFaceoffSpotHorizontalPosition, bottomFaceoffSpotsVerticalPositions, '#FFFFFF', faceoffCircleRadius);
-    // draw away team red bottom defending side faceoff spot 
-    drawCircle(this.state.context, awayTeamDefendingFaceoffSpotHorizontalPosition, bottomFaceoffSpotsVerticalPositions, '#FF0000', faceoffSpotRadius);
-
-    // draw away team red top neutral side faceoff spot 
-    drawCircle(this.state.context, awayTeamNeutralFaceoffSpotHorizontalPosition, topFaceoffSpotsVerticalPositions, '#FF0000', faceoffSpotRadius);
-
-    // draw away team red bottom neutral side faceoff spot 
-    drawCircle(this.state.context, awayTeamNeutralFaceoffSpotHorizontalPosition, bottomFaceoffSpotsVerticalPositions, '#FF0000', faceoffSpotRadius);
-    
-    // Draw home team bottom red faceoff circle
-    drawCircleWithBorder(this.state.context, homeTeamDefendingFaceoffSpotHorizontalPosition, topFaceoffSpotsVerticalPositions, '#FFFFFF', faceoffCircleRadius);
-    // draw home team red top defending side faceoff spot 
-    drawCircle(this.state.context, homeTeamDefendingFaceoffSpotHorizontalPosition, topFaceoffSpotsVerticalPositions, '#FF0000', faceoffSpotRadius);
-
-    // Draw home team bottom red faceoff circle
-    drawCircleWithBorder(this.state.context, homeTeamDefendingFaceoffSpotHorizontalPosition, bottomFaceoffSpotsVerticalPositions, '#FFFFFF', faceoffCircleRadius);
-    // draw home team red bottom defending side faceoff spot 
-    drawCircle(this.state.context, homeTeamDefendingFaceoffSpotHorizontalPosition, bottomFaceoffSpotsVerticalPositions, '#FF0000', faceoffSpotRadius);
-
-    // draw home team red top neutral side faceoff spot 
-    drawCircle(this.state.context, homeTeamNeutralFaceoffSpotHorizontalPosition, topFaceoffSpotsVerticalPositions, '#FF0000', faceoffSpotRadius);
-
-    // draw home team red bottom neutral side faceoff spot 
-    drawCircle(this.state.context, homeTeamNeutralFaceoffSpotHorizontalPosition, bottomFaceoffSpotsVerticalPositions, '#FF0000', faceoffSpotRadius);
-    
-    // draw away team goal crease 
-    drawArcWithBorder(this.state.context, leftGoalLine+lineWidth, goalCreaseVerticalPosition, '#67C6DD', goalCreaseRadius, '#FF0000', 2, 0 - Math.PI / 2, Math.PI / 2);
-
-    // draw home team goal crease 
-    drawArcWithBorder(this.state.context, rightGoalLine, goalCreaseVerticalPosition, '#67C6DD', goalCreaseRadius, '#FF0000', 2, Math.PI / 2, Math.PI * 1.5);
-
-    // draw away team goal
-    drawRoundedRectangle(this.state.context, leftGoalLine - goalDeepness + lineWidth/2, 
-                              goalCreaseVerticalPosition - (goalWidth/2), 
-                              goalDeepness, 
-                              goalWidth, 
-                              '#FFFFFF', 
-                              rinkWidth*0.003,0,rinkWidth*0.003,0, rinkWidth*0.0015, '#FF0000'
-                              );
-    
-    // draw home team goal
-    drawRoundedRectangle(this.state.context, rightGoalLine+lineWidth/2, 
-                              goalCreaseVerticalPosition - (goalWidth/2), 
-                              goalDeepness, 
-                              goalWidth, 
-                              '#FFFFFF', 
-                              0,rinkWidth*0.003,0,rinkWidth*0.003, rinkWidth*0.0015, '#FF0000'
-                              );
     
     if(this.state.jsonData && this.state.jsonData.liveData) {
       console.log("jsondata livedata filled");
