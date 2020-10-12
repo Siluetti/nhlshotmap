@@ -21,29 +21,36 @@ https://statsapi.web.nhl.com/api/v1/schedule?startDate=2020-09-19&endDate=2020-0
 
 
 TODO list:
-    - Create a heat map
-    - beautify buttons in "Games with datepicker"
-    - add aggregate data depending on player
-    - add tab bar for multi game series, multi game heat map and single player selection
-    - when one spot has multiple events (e.g. see faceoffs) then show the items as a list
-    - add nhl coordinates and converted coordinates to datatip when URL has ?showCoordinates=true
-    - add multigame possibility for playoff series
-    - add multigame possibility for different games
-    - add Google analytics
-    - remove extra date from GameEventTypeLegend component
-    - add info button for "Games with URL" that describes on how to find the URL
-    - BUG: when event is down on the rink, the datatip goes off the browser screen
-        - to repeat 
-            - set this game: https://www.nhl.com/gamecenter/dal-vs-tbl/2020/09/26/2019030415#game=2019030415,game_state=final
-            - only select OT period
-            - see left bottom side of the rink
-    - BUG: when clicking "Single rink side" with "Goals" selected, the feature breaks
-        - to repeat 
-            - set this game: https://www.nhl.com/gamecenter/dal-vs-tbl/2020/09/26/2019030415#game=2019030415,game_state=final
-            - select "Goals" from the "Filter game events"
-            - click Single rink side multiple times, it should not register second mouse click
-    - BUG: the faceoffs (and thus probably also the other events on the ice) seem little off the marks. Maybe something to do with the translations as the center faceoff is calculated from rink width and height / 2 and the events are translated coordinates?
-        - as a side note it seems that neutral area faceoffs near blue lines are off quite a bit. Reason for this is unclear. 
+    - new functionalities
+        - Create a heat map
+        - add aggregate data depending on player
+        - add tab bar for multi game series, multi game heat map and single player selection
+        - when one spot has multiple events (e.g. see faceoffs) then show the items as a list
+        - add multigame possibility for playoff series
+        - add multigame possibility for different games
+        - debugging
+            - add nhl coordinates and converted coordinates to datatip when URL has ?showCoordinates=true
+        - user analytics
+            - add Google analytics
+        - UX
+            - when clicking a game in "Games with datepicker" autoscroll to the map
+            - add info button for "Games with URL" that describes on how to find the URL
+    - visuals
+        - beautify buttons in "Games with datepicker"
+    - refactor / bugs
+        - remove extra date from GameEventTypeLegend component
+        - BUG: when event is down on the rink, the datatip goes off the browser screen
+            - to repeat 
+                - set this game: https://www.nhl.com/gamecenter/dal-vs-tbl/2020/09/26/2019030415#game=2019030415,game_state=final
+                - only select OT period
+                - see left bottom side of the rink
+        - BUG: when clicking "Single rink side" with "Goals" selected, the feature breaks
+            - to repeat 
+                - set this game: https://www.nhl.com/gamecenter/dal-vs-tbl/2020/09/26/2019030415#game=2019030415,game_state=final
+                - select "Goals" from the "Filter game events"
+                - click Single rink side multiple times, it should not register second mouse click
+        - BUG: the faceoffs (and thus probably also the other events on the ice) seem little off the marks. Maybe something to do with the translations as the center faceoff is calculated from rink width and height / 2 and the events are translated coordinates?
+            - as a side note it seems that neutral area faceoffs near blue lines are off quite a bit. Reason for this is unclear. 
 
 
 $ npm install -g @aws-amplify/cli
