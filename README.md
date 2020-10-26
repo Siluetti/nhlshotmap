@@ -35,6 +35,10 @@ TODO list:
         - UX
             - when clicking a game in "Games with datepicker" autoscroll to the map
             - add info button for "Games with URL" that describes on how to find the URL
+        - enable either https://craft.js.org/ or https://react-dnd.github.io/react-dnd/examples/tutorial
+        - use https://github.com/OpenAPITools/openapi-generator-cli for automatic generator
+        - API documentation: https://github.com/dword4/nhlapi or https://gitlab.com/dword4/nhlapi
+        - add Saga https://medium.com/nmc-techblog/the-power-of-redux-saga-3dbd26a08b49
     - visuals
         - beautify buttons in "Games with datepicker"
     - refactor / bugs
@@ -51,7 +55,6 @@ TODO list:
                 - click Single rink side multiple times, it should not register second mouse click
         - BUG: the faceoffs (and thus probably also the other events on the ice) seem little off the marks. Maybe something to do with the translations as the center faceoff is calculated from rink width and height / 2 and the events are translated coordinates?
             - as a side note it seems that neutral area faceoffs near blue lines are off quite a bit. Reason for this is unclear. 
-
 
 $ npm install -g @aws-amplify/cli
 $ amplify configure

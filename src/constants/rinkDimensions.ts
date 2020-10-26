@@ -1,19 +1,50 @@
-export function getRinkDimensions(window) {
+export type RinkDimensions = {
+  windowWidth: number,
+  rinkWidth: number,
+  rinkHeight: number,
+  borderRadiusStyle: string,
+  xOmegaPoint: number,
+  yOmegaPoint: number,
+  horizontalTranslation: number,
+  verticalTranslation: number,
+  leftGoalLine: number,
+  rightGoalLine: number,
+  centreLine: number,
+  centreLineWidth: number,
+  lineWidth: number,
+  leftBlueLine: number,
+  rightBlueLine: number,
+  faceoffCircleRadius: number,
+  centerFaceoffSpotRadius: number,
+  faceoffSpotRadius: number,
+  awayTeamDefendingFaceoffSpotHorizontalPosition: number,
+  homeTeamDefendingFaceoffSpotHorizontalPosition: number,
+  awayTeamNeutralFaceoffSpotHorizontalPosition: number,
+  homeTeamNeutralFaceoffSpotHorizontalPosition: number,
+  topFaceoffSpotsVerticalPositions: number,
+  bottomFaceoffSpotsVerticalPositions: number,
+  goalCreaseRadius: number,
+  goalCreaseVerticalPosition: number,
+  goalDeepness: number,
+  goalWidth: number,
+}
+
+export function getRinkDimensions(window:Window):RinkDimensions {
   // According to Wikipedia https://en.wikipedia.org/wiki/Ice_hockey_rink#:~:text=Most%20North%20American%20rinks%20follow,m)%20from%20the%20end%20boards.
     // ice hockey rink is by default 200 feet times 85 feet
     // so let's set the width to 80 % of the window width and then multiply this with 42.5 % to get the height of the rink
-    var windowWidth = window.innerWidth;
-    var rinkWidth = windowWidth * 0.8;
-    var rinkHeight = rinkWidth * 0.425;
+    var windowWidth:number = window.innerWidth;
+    var rinkWidth:number = windowWidth * 0.8;
+    var rinkHeight:number = rinkWidth * 0.425;
     // corner radius is 28 feet which makes it 14 %
-    var borderRadiusStyle = rinkWidth * 0.14;
-    borderRadiusStyle = borderRadiusStyle + "px";
+    var borderRadiusStyleInNumber:number = rinkWidth * 0.14;
+    var borderRadiusStyle:string = borderRadiusStyleInNumber + "px";
     // goal lines are 11 feet from the end boards which means 5.5 % and 94.5 % of rink width
-    var leftGoalLine = rinkWidth * 0.055;
-    var rightGoalLine = rinkWidth * 0.945;
+    var leftGoalLine:number = rinkWidth * 0.055;
+    var rightGoalLine:number = rinkWidth * 0.945;
     // Blue lines are 75 feet from the end boards which makes 32.5 % and 67.5 % of rink width
-    var leftBlueLine = rinkWidth * 0.325;
-    var rightBlueLine = rinkWidth * 0.675;
+    var leftBlueLine:number = rinkWidth * 0.325;
+    var rightBlueLine:number = rinkWidth * 0.675;
 
   
   return {

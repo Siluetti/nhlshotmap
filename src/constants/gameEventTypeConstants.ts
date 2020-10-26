@@ -1,4 +1,6 @@
-export const GAME_EVENT_TYPE_OPTIONS = [
+import GameEventTypeInterface from "../typescript/interfaces/GameEventTypeInterface";
+
+export const GAME_EVENT_TYPE_OPTIONS:GameEventTypeInterface[] = [
     { value: 'FACEOFF', label: 'Faceoffs', color: '#FF0000' },
     { value: 'HIT', label: 'Hits', color: '#D789D7' },
     { value: 'BLOCKED_SHOT', label: 'Blocked shots', color: '#00FF00' },
@@ -11,5 +13,5 @@ export const GAME_EVENT_TYPE_OPTIONS = [
   ];
 
   // default game event is "shot"
-export const DEFAULT_GAME_EVENT_INDEX = 3;
+export const DEFAULT_GAME_EVENT_INDEX:number = 3;
     
