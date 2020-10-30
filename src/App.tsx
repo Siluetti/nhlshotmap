@@ -7,22 +7,24 @@ import Tab from '@material-ui/core/Tab';
 import AppBar from '@material-ui/core/AppBar';
 import {handleTabChange} from "./statemachine/tabChanger"
 import AppProps from './typescript/interfaces/AppProps';
+import CookieConsent from "react-cookie-consent";
 
 type AppState = {tabIndex: number, tabIndex2: number};
 class App extends React.Component<AppProps, AppState> {
   // _isMounted is here only for solving an issue with data fetching:
   // https://stackoverflow.com/questions/53949393/cant-perform-a-react-state-update-on-an-unmounted-component
-  _isMounted = false;
+  _isMounted:boolean = false;
   
-  set isMounted(isMounted){
+  set isMounted(isMounted:boolean){
     this._isMounted = isMounted;
   }
 
   // _isMounted needs a getter, otherwise it will give following error
   // https://stackoverflow.com/questions/36553274/uncaught-typeerror-cannot-set-property-playerno-of-which-has-only-a-getter-on
-  get isMounted(){
+  get isMounted():boolean{
       return this._isMounted;
   }
+
 
   constructor(props:{}) {
     super(props);
@@ -31,6 +33,7 @@ class App extends React.Component<AppProps, AppState> {
       tabIndex2: 0,
     }
     this.setState = this.setState.bind(this);
+
   }
 
   componentDidMount(){
@@ -46,9 +49,18 @@ class App extends React.Component<AppProps, AppState> {
     this.isMounted = false;
   }
 
+  cookiesDeclined(){
+
+  }
+
+  cookiesAccepted(){
+
+  }
+
   render() {
     return (
       <div>
+
         <AppBar position="static">
           <Tabs 
             value={this.state.tabIndex} 
@@ -87,6 +99,9 @@ class App extends React.Component<AppProps, AppState> {
         <div hidden={this.state.tabIndex != 1}>Heat map functionality</div>
         <div hidden={this.state.tabIndex != 2}><h1>About</h1>
 
+          <p>TODO: This site is not affiliated with NHL. All trademarks are registered to NHL...</p>
+          <p>TODO: This site is open source project. The source code can be found here ... . The license is ...</p>
+          <p>Please consider donating or becoming patreon.</p>
         <p>Please understand that the data presented here can have issues and they should not be taken as definitive truth. 
           These issues may be because
         </p>
@@ -119,6 +134,21 @@ class App extends React.Component<AppProps, AppState> {
         </p>
 
       </div>
+
+      <CookieConsent
+          enableDeclineButton
+          location="bottom"
+          buttonText="Accept"
+          cookieName="cookieName"
+          style={{ background: "#2B373B" }}
+          buttonStyle={{ color: "#4e503b", fontSize: "13px" }}
+          expires={150}
+          onAccept={this.cookiesAccepted}
+          onDecline={this.cookiesDeclined}
+        >
+        We use cookies.{" "}
+        <span style={{ fontSize: "10px" }}>Welcome to the dark side.</span>
+      </CookieConsent>
       </div>
     );
   }

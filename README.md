@@ -30,20 +30,22 @@ TODO list:
         - add multigame possibility for different games
         - debugging
             - add nhl coordinates and converted coordinates to datatip when URL has ?showCoordinates=true
-        - user analytics
-            - add Google analytics
         - UX
             - when clicking a game in "Games with datepicker" autoscroll to the map
             - add info button for "Games with URL" that describes on how to find the URL
+            - when no games found, give text "No games found"
+            - add aggregate game data (goals)
+            - game events dropdown activates keyboard on mobile, disable keyboard
         - enable either https://craft.js.org/ or https://react-dnd.github.io/react-dnd/examples/tutorial
         - use https://github.com/OpenAPITools/openapi-generator-cli for automatic generator
         - API documentation: https://github.com/dword4/nhlapi or https://gitlab.com/dword4/nhlapi
         - add Saga https://medium.com/nmc-techblog/the-power-of-redux-saga-3dbd26a08b49
+        - disable Google analytics if cookies declined
     - visuals
         - beautify buttons in "Games with datepicker"
     - refactor / bugs
         - remove extra date from GameEventTypeLegend component
-        - BUG: when event is down on the rink, the datatip goes off the browser screen
+        - BUG: when event is down on the rink, the datatip goes off the browser screen (same problem for left side of the screen)
             - to repeat 
                 - set this game: https://www.nhl.com/gamecenter/dal-vs-tbl/2020/09/26/2019030415#game=2019030415,game_state=final
                 - only select OT period
