@@ -2,6 +2,12 @@
   text-align: center;
 }
 
+
+.gameButton{
+  margin: 25px 25px 25px 25px;
+  width: 400 px;
+}
+
 .App-logo {
   height: 40vmin;
   pointer-events: none;

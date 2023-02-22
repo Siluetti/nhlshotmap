@@ -56,6 +56,8 @@ class SingleEventMap extends React.Component<SingleEventMapProps, SingleEventMap
   // this is json object
   selectedPlay:any = null;
   canvasRef:React.RefObject<HTMLCanvasElement> = null;
+  executeScroll:Function = null;
+
 
   set isMounted(isMounted:boolean){
     this._isMounted = isMounted;
@@ -70,6 +72,7 @@ class SingleEventMap extends React.Component<SingleEventMapProps, SingleEventMap
   constructor(props:SingleEventMapProps) {
     super(props);
     this.canvasRef = React.createRef<HTMLCanvasElement>();
+//    this.executeScroll = () => this.canvasRef.current.scrollIntoView();
     this.state = {
       context: null,
       jsonData: null,
@@ -90,6 +93,7 @@ class SingleEventMap extends React.Component<SingleEventMapProps, SingleEventMap
       showEventsOnOneSide: true,
     }
 
+//    this.executeScroll = this.executeScroll.bind(this);
     this.handleGameUrlChange = this.handleGameUrlChange.bind(this);
     this.handleGameEventTypeChange = this.handleGameEventTypeChange.bind(this);
     this.displayAwayTeamHandler = this.displayAwayTeamHandler.bind(this);
@@ -234,6 +238,9 @@ class SingleEventMap extends React.Component<SingleEventMapProps, SingleEventMap
   }
 
   handleSingleGameJsonData(jsonData:any){
+    // when we get the data, scroll the rink into view
+    this.canvasRef.current.scrollIntoView();
+
     this.inversedEvents = false;
     this.setState(
         {
@@ -415,7 +422,14 @@ class SingleEventMap extends React.Component<SingleEventMapProps, SingleEventMap
           Array.apply(null, this.state.gamesJsonData.dates as any[]).map((e, i) => (
             Array.apply(null, this.state.gamesJsonData.dates[i].games as any[]).map((e, j) => (
               <span className="gameHandlerSpan" key={this.state.gamesJsonData.dates[i].games[j].gamePk}>
-              <Button variant="contained" value={this.state.gamesJsonData.dates[i].games[j].gamePk} onClick={() => {getSingleGameDataFromNhlApi(this.state.gamesJsonData.dates[i].games[j].gamePk, this.handleSingleGameJsonData)}}>{this.state.gamesJsonData.dates[i].games[j].gameDate} {this.state.gamesJsonData.dates[i].games[j].teams.away.team.name} @ {this.state.gamesJsonData.dates[i].games[j].teams.home.team.name}</Button>
+              <Button   className='gameButton' 
+                        variant="contained" 
+                        value={this.state.gamesJsonData.dates[i].games[j].gamePk} 
+                        onClick={() => {getSingleGameDataFromNhlApi(this.state.gamesJsonData.dates[i].games[j].gamePk, this.handleSingleGameJsonData)}}>
+                          {this.state.gamesJsonData.dates[i].games[j].gameDate} 
+                          {this.state.gamesJsonData.dates[i].games[j].teams.away.team.name} @ 
+                          {this.state.gamesJsonData.dates[i].games[j].teams.home.team.name}
+                          </Button>
             </span>
             ))
           ))

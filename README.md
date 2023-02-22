@@ -31,7 +31,6 @@ TODO list:
         - debugging
             - add nhl coordinates and converted coordinates to datatip when URL has ?showCoordinates=true
         - UX
-            - when clicking a game in "Games with datepicker" autoscroll to the map
             - add info button for "Games with URL" that describes on how to find the URL
             - when no games found, give text "No games found"
             - add aggregate game data (goals)
@@ -58,12 +57,26 @@ TODO list:
         - BUG: the faceoffs (and thus probably also the other events on the ice) seem little off the marks. Maybe something to do with the translations as the center faceoff is calculated from rink width and height / 2 and the events are translated coordinates?
             - as a side note it seems that neutral area faceoffs near blue lines are off quite a bit. Reason for this is unclear. 
 
+
+
+#Install NPM and amplify
+Install NPM. After installing NPM install amplify command line interface. You might need to run these the following command as admin (if you did not see down below):
+
 $ npm install -g @aws-amplify/cli
+
+If the install gives ERR_SOCKET_TIMEOUT it is probably because you have not run the command as admin (or then something has timeouted). In any case run 
+
+$ npm uninstall -g @aws-amplify/cli
+
+Before running the install again.
+
+Now that you have your installation done, you have to configure amplify to use correct credentials. You can do this by running:
+
 $ amplify configure
 
 amplify configure asks you to sign into the AWS Console.
 
-Once you’re signed in, the Amplify CLI asks you to create an IAM user.
+Once you’re signed in, the Amplify CLI asks you to create an IAM user and opens up browser for this. Note that it is not necessary to create a new user if you already have old username. You can just skip the browser setup and give the old username, accessKeyId and secretAccessKey to the console. 
 
 Specify the AWS Region ? 
 *region*: # Your preferred region 
@@ -71,12 +84,36 @@ Specify the username of the new IAM user: ?
 *user name*: # User name for Amplify IAM user 
 Complete the user creation using the AWS console
 
+While trying to run 
+
+$ npm start 
+
+you might hit several problems:
+
+#Problem 1: ps1 cannot be loaded because running scripts is disabled on this system
+
+For this problem see this: https://stackoverflow.com/questions/41117421/ps1-cannot-be-loaded-because-running-scripts-is-disabled-on-this-system
+
+You can run "Set-ExecutionPolicy RemoteSigned" in Powershell. If this does not work, try running "Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy Unrestricted"
+
+#Problem 2 "'react-scripts' is not recognized as an internal or external command" 
+
+Try following (https://stackoverflow.com/questions/52039375/stuck-while-installing-packages-npm-err-notarget-no-matching-version-found-for):
+1) delete the node-modules folder (from C:\Users\username\AppData\Roaming\npm)
+2) delete the package-lock.json
+3) Run NPM install
+4) Run NPM start
+
+You might have to change some version numbers in you package.json to fix any dependency errors. 
+
+Now that it has started, run "npm install -g @aws-amplify/cli" again
+
+
 
 $ npx create-react-app shotmap
 $ cd shotmap
 
 $ amplify init 
-
 ? Enter a name for the project: amplifyapp 
 ? Enter a name for the environment: dev 
 ? Choose your default editor: Visual Studio Code 
